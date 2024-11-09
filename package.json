@@ -1,0 +1,22 @@
+{
+  "name": "golozap_backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "description": "",
+  "dependencies": {
+    "axios-retry": "^4.5.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "mongodb": "^6.10.0",
+    "mongoose": "^8.7.2",
+    "nanoid": "^5.0.7",
+    "node-geocoder": "^4.4.0",
+    "uuid": "^10.0.0"
+  }
+}

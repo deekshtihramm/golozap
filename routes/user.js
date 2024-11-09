@@ -611,4 +611,23 @@ router.put('/update/about', async (req, res) => {
     }
 });
 
+// GET all users
+router.get('/getAll', async (req, res) => {
+    try {
+        // Retrieve all users from the database
+        const users = await User.find();
+
+        // If no users found, return a 404 error
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'No users found.' });
+        }
+
+        // Return the list of users
+        res.status(200).json(users);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 module.exports = router;

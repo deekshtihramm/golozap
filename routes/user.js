@@ -3,6 +3,11 @@ const User = require('../model/User'); // Ensure this path is correct
 
 const router = express.Router();
 
+// GET hello world
+router.get('/hello', (req, res) => {
+    res.status(200).send('Hello World');
+});
+
 // POST to create a new user
 router.post('/create', async (req, res) => {
     const { 

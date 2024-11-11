@@ -27,5 +27,5 @@ app.use('/api', areaRoutes);
 
 // Start the server
 app.listen(port, async () => {
-  console.log(`Server running at https://golozap.onrender.com/`);
+  console.log(`Server running at https://golozap.vercel.app/`);
 });

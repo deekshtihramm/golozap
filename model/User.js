@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
     servicename: { type: String},
     phone: { type: String, unique: true },
     ownername: { type: String, default: "GoloZap" },
-    personalEmail: { type: String },
+    personalEmail: { type: String, unique: true  },
     serviceUrl: { type: String },
     about: { type: String },
     address: { type: String },

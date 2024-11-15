@@ -3,11 +3,6 @@ const User = require('../model/User'); // Ensure this path is correct
 
 const router = express.Router();
 
-// GET hello world
-router.get('/hello', (req, res) => {
-    res.status(200).send('Hello World');
-});
-
 // POST to create a new user
 router.post('/create', async (req, res) => {
     const { 
@@ -15,6 +10,7 @@ router.post('/create', async (req, res) => {
         phone, 
         ownername, 
         serviceUrl, 
+        personalEmail,
         about, 
         address, 
         rating, 
@@ -32,7 +28,7 @@ router.post('/create', async (req, res) => {
 
     try {
         // Check if a user already exists with this phone number
-        const existingUser = await User.findOne({ phone });
+        const existingUser = await User.findOne({ personalEmail });
         
         if (existingUser) {
             return res.status(409).json({ message: 'Account already created with this phone number.' });
@@ -48,6 +44,7 @@ router.post('/create', async (req, res) => {
             phone,
             ownername,
             serviceUrl,
+            personalEmail,
             about,
             address,
             rating,
@@ -136,19 +133,19 @@ router.post('/search', async (req, res) => {
 
 
 
-// PUT to update serviceAreaPincodes for a user using phone number
+// PUT to update serviceAreaPincodes for a user using personalEmail number
 router.put('/update/pincodes', async (req, res) => {
-    const { phone, serviceAreaPincodes } = req.body; // Use phone from the request body
+    const { personalEmail, serviceAreaPincodes } = req.body; // Use personalEmail from the request body
 
-    // Ensure phone number and serviceAreaPincodes are provided
-    if (!phone || !serviceAreaPincodes || !Array.isArray(serviceAreaPincodes)) {
-        return res.status(400).json({ message: 'Phone and serviceAreaPincodes must be provided and serviceAreaPincodes must be an array.' });
+    // Ensure personalEmail number and serviceAreaPincodes are provided
+    if (!personalEmail || !serviceAreaPincodes || !Array.isArray(serviceAreaPincodes)) {
+        return res.status(400).json({ message: 'personalEmail and serviceAreaPincodes must be provided and serviceAreaPincodes must be an array.' });
     }
 
     try {
         // Update the user in the database
         const updatedUser = await User.findOneAndUpdate(
-            { phone }, 
+            { personalEmail }, 
             { serviceAreaPincodes }, 
             { new: true } // Return the updated document
         );
@@ -634,5 +631,6 @@ router.get('/getAll', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
 
 module.exports = router;

@@ -531,16 +531,16 @@ router.put('/update/businessName', async (req, res) => {
 
 // PUT to update business emails
 router.put('/update/businessEmails', async (req, res) => {
-    const { phone, businessEmails } = req.body;
+    const { personalEmail, businessEmails } = req.body;
 
     // Ensure businessEmails is an array
-    if (!phone || !Array.isArray(businessEmails)) {
-        return res.status(400).json({ message: 'Phone and businessEmails must be provided as an array.' });
+    if (!personalEmail || !Array.isArray(businessEmails)) {
+        return res.status(400).json({ message: 'personalEmail and businessEmails must be provided as an array.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { businessEmails },
             { new: true }
         );
@@ -558,16 +558,16 @@ router.put('/update/businessEmails', async (req, res) => {
 
 // PUT to update business phone numbers
 router.put('/update/businessPhoneNumbers', async (req, res) => {
-    const { phone, businessPhoneNumbers } = req.body;
+    const { personalEmail, businessPhoneNumbers } = req.body;
 
     // Ensure businessPhoneNumbers is an array
-    if (!phone || !Array.isArray(businessPhoneNumbers)) {
-        return res.status(400).json({ message: 'Phone and businessPhoneNumbers must be provided as an array.' });
+    if (!personalEmail || !Array.isArray(businessPhoneNumbers)) {
+        return res.status(400).json({ message: 'personalEmail and businessPhoneNumbers must be provided as an array.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { businessPhoneNumbers },
             { new: true }
         );
@@ -585,17 +585,17 @@ router.put('/update/businessPhoneNumbers', async (req, res) => {
 
 // Update about
 router.put('/update/about', async (req, res) => {
-    const { phone, about } = req.body;
+    const { personalEmail, about } = req.body;
 
     // Validate input
-    if (!phone || !about) {
-        return res.status(400).json({ message: 'Phone and about must be provided.' });
+    if (!personalEmail || !about) {
+        return res.status(400).json({ message: 'personalEmail and about must be provided.' });
     }
 
     try {
         // Update the user's about field
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { about },
             { new: true } // Return the updated document
         );

@@ -382,7 +382,7 @@ router.put('/update/locationPincode', async (req, res) => {
     const { phone, locationPincode } = req.body;
 
     if (!phone || !Array.isArray(locationPincode)) {
-        return res.status(400).json({ message: 'Phone and locationPincode array must be provided.' });
+        return res.status(400).json({ message: 'Phoneeee and locationPincode array must be provided.' });
     }
 
     try {

@@ -166,15 +166,15 @@ router.put('/update/pincodes', async (req, res) => {
 
 // Update servicename
 router.put('/update/servicename', async (req, res) => {
-    const { phone, servicename } = req.body;
+    const { personalEmail, servicename } = req.body;
 
-    if (!phone || !servicename) {
-        return res.status(400).json({ message: 'Phone and servicename must be provided.' });
+    if (!personalEmail || !servicename) {
+        return res.status(400).json({ message: 'personalEmail and servicename must be provided.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { servicename },
             { new: true }
         );
@@ -192,15 +192,15 @@ router.put('/update/servicename', async (req, res) => {
 
 // Update ownername
 router.put('/update/ownername', async (req, res) => {
-    const { phone, ownername } = req.body;
+    const { personalEmail, ownername } = req.body;
 
-    if (!phone || !ownername) {
-        return res.status(400).json({ message: 'Phone and ownername must be provided.' });
+    if (!personalEmail || !ownername) {
+        return res.status(400).json({ message: 'personalEmail and ownername must be provided.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { ownername },
             { new: true }
         );
@@ -218,17 +218,17 @@ router.put('/update/ownername', async (req, res) => {
 
 // Update personal email
 router.put('/update/personalEmail', async (req, res) => {
-    const { phone, personalEmail } = req.body;
+    const { personalEmail, personalEmail } = req.body;
 
     // Validate input
-    if (!phone || !personalEmail) {
-        return res.status(400).json({ message: 'Phone and personalEmail must be provided.' });
+    if (!personalEmail || !personalEmail) {
+        return res.status(400).json({ message: 'personalEmail and personalEmail must be provided.' });
     }
 
     try {
         // Update the user's personal email
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { personalEmail },
             { new: true }
         );
@@ -249,15 +249,15 @@ router.put('/update/personalEmail', async (req, res) => {
 
 // Update serviceUrl
 router.put('/update/serviceUrl', async (req, res) => {
-    const { phone, serviceUrl } = req.body;
+    const { personalEmail, serviceUrl } = req.body;
 
-    if (!phone || !serviceUrl) {
-        return res.status(400).json({ message: 'Phone and serviceUrl must be provided.' });
+    if (!personalEmail || !serviceUrl) {
+        return res.status(400).json({ message: 'personalEmail and serviceUrl must be provided.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { serviceUrl },
             { new: true }
         );
@@ -275,15 +275,15 @@ router.put('/update/serviceUrl', async (req, res) => {
 
 // Update address
 router.put('/update/address', async (req, res) => {
-    const { phone, address } = req.body;
+    const { personalEmail, address } = req.body;
 
-    if (!phone || !address) {
-        return res.status(400).json({ message: 'Phone and address must be provided.' });
+    if (!personalEmail || !address) {
+        return res.status(400).json({ message: 'personalEmail and address must be provided.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { address },
             { new: true }
         );
@@ -301,15 +301,15 @@ router.put('/update/address', async (req, res) => {
 
 // Update rating
 router.put('/update/rating', async (req, res) => {
-    const { phone, rating } = req.body;
+    const { personalEmail, rating } = req.body;
 
-    if (!phone || typeof rating !== 'number') {
-        return res.status(400).json({ message: 'Phone and a numeric rating must be provided.' });
+    if (!personalEmail || typeof rating !== 'number') {
+        return res.status(400).json({ message: 'personalEmail and a numeric rating must be provided.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { rating },
             { new: true }
         );
@@ -327,15 +327,15 @@ router.put('/update/rating', async (req, res) => {
 
 // Update reviewsCount
 router.put('/update/reviewsCount', async (req, res) => {
-    const { phone, reviewsCount } = req.body;
+    const { personalEmail, reviewsCount } = req.body;
 
-    if (!phone || typeof reviewsCount !== 'number') {
-        return res.status(400).json({ message: 'Phone and a numeric reviewsCount must be provided.' });
+    if (!personalEmail || typeof reviewsCount !== 'number') {
+        return res.status(400).json({ message: 'personalEmail and a numeric reviewsCount must be provided.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { reviewsCount },
             { new: true }
         );
@@ -353,15 +353,15 @@ router.put('/update/reviewsCount', async (req, res) => {
 
 // Update serviceTypes
 router.put('/update/serviceTypes', async (req, res) => {
-    const { phone, serviceTypes } = req.body;
+    const { personalEmail, serviceTypes } = req.body;
 
-    if (!phone || !Array.isArray(serviceTypes)) {
-        return res.status(400).json({ message: 'Phone and serviceTypes array must be provided.' });
+    if (!personalEmail || !Array.isArray(serviceTypes)) {
+        return res.status(400).json({ message: 'personalEmail and serviceTypes array must be provided.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { serviceTypes },
             { new: true }
         );
@@ -379,15 +379,15 @@ router.put('/update/serviceTypes', async (req, res) => {
 
 // Update locationPincode
 router.put('/update/locationPincode', async (req, res) => {
-    const { phone, locationPincode } = req.body;
+    const { personalEmail, locationPincode } = req.body;
 
-    if (!phone || !Array.isArray(locationPincode)) {
-        return res.status(400).json({ message: 'Phoneeee and locationPincode array must be provided.' });
+    if (!personalEmail || !Array.isArray(locationPincode)) {
+        return res.status(400).json({ message: 'personalEmail and locationPincode array must be provided.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { locationPincode },
             { new: true }
         );
@@ -406,17 +406,17 @@ router.put('/update/locationPincode', async (req, res) => {
 
 // PUT to add a new review, increment reviewsCount, and update average rating
 router.put('/update/reviews', async (req, res) => {
-    const { phone, reviewerName, rating, comment } = req.body; // Single new review
+    const { personalEmail, reviewerName, rating, comment } = req.body; // Single new review
 
     // Validate required fields
-    if (!phone || !reviewerName || typeof rating !== 'number' || !comment) {
-        return res.status(400).json({ message: 'Phone, reviewerName, rating, and comment are required.' });
+    if (!personalEmail || !reviewerName || typeof rating !== 'number' || !comment) {
+        return res.status(400).json({ message: 'personalEmail, reviewerName, rating, and comment are required.' });
     }
 
     try {
         // Find the user and add the new review
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { 
                 $push: { reviews: { reviewerName, rating, comment } },  // Add new review
                 $inc: { reviewsCount: 1 }  // Increment reviewsCount by 1
@@ -447,17 +447,17 @@ router.put('/update/reviews', async (req, res) => {
 });
 
 // GET user by phone number
-router.post('/getByPhone', async (req, res) => {
-    const { phone } = req.body; // Use query parameter
+router.post('/getBypersonalEmail', async (req, res) => {
+    const { personalEmail } = req.body; // Use query parameter
 
     // Ensure phone number is provided
-    if (!phone) {
-        return res.status(400).json({ message: 'Phone number is required.' });
+    if (!personalEmail) {
+        return res.status(400).json({ message: 'personalEmail is required.' });
     }
 
     try {
         // Find the user based on phone number
-        const user = await User.findOne({ phone });
+        const user = await User.findOne({ personalEmail });
 
         // Check if the user exists
         if (!user) {
@@ -475,17 +475,17 @@ router.post('/getByPhone', async (req, res) => {
 
 // Update businessAccountStatus
 router.put('/update/businessStatus', async (req, res) => {
-    const { phone, businessAccountStatus } = req.body;
+    const { personalEmail, businessAccountStatus } = req.body;
 
     // Validate that phone and businessAccountStatus are provided
-    if (!phone || typeof businessAccountStatus !== 'boolean') {
-        return res.status(400).json({ message: 'Phone and businessAccountStatus (true or false) must be provided.' });
+    if (!personalEmail || typeof businessAccountStatus !== 'boolean') {
+        return res.status(400).json({ message: 'personalEmail and businessAccountStatus (true or false) must be provided.' });
     }
 
     try {
         // Find the user and update the businessAccountStatus
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { businessAccountStatus },
             { new: true } // Return the updated document
         );
@@ -505,15 +505,15 @@ router.put('/update/businessStatus', async (req, res) => {
 
 // PUT to update business name
 router.put('/update/businessName', async (req, res) => {
-    const { phone, businessName } = req.body;
+    const { personalEmail, businessName } = req.body;
 
-    if (!phone || !businessName) {
-        return res.status(400).json({ message: 'Phone and businessName must be provided.' });
+    if (!personalEmail || !businessName) {
+        return res.status(400).json({ message: 'personalEmail and businessName must be provided.' });
     }
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { phone },
+            { personalEmail },
             { businessName },
             { new: true }
         );

@@ -12,7 +12,7 @@ const ReviewSchema = new mongoose.Schema({
 const UserSchema = new mongoose.Schema({
     uniqueId: { type: String, required: true, unique: true },
     servicename: { type: String},
-    phone: { type: String, unique: true },
+    phone: { type: String },
     ownername: { type: String, default: "GoloZap" },
     personalEmail: { type: String, unique: true  },
     serviceUrl: { type: String },

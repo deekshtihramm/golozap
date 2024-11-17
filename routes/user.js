@@ -218,17 +218,17 @@ router.put('/update/ownername', async (req, res) => {
 
 // Update personal email
 router.put('/update/personalEmail', async (req, res) => {
-    const { personalEmail, personalEmail } = req.body;
+    const { personalEmailnow, personalEmail } = req.body;
 
     // Validate input
-    if (!personalEmail || !personalEmail) {
-        return res.status(400).json({ message: 'personalEmail and personalEmail must be provided.' });
+    if (!personalEmailnow || !personalEmail) {
+        return res.status(400).json({ message: 'personalEmailnow and personalEmail must be provided.' });
     }
 
     try {
         // Update the user's personal email
         const updatedUser = await User.findOneAndUpdate(
-            { personalEmail },
+            { personalEmailnow },
             { personalEmail },
             { new: true }
         );

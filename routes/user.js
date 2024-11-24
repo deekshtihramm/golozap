@@ -21,11 +21,6 @@ router.post('/create', async (req, res) => {
         serviceAreaPincodes 
     } = req.body;
 
-    // Ensure locationPincode is an array and has at least one value
-    if (!Array.isArray(personalEmail) || personalEmail.length === 0) {
-        return res.status(400).json({ message: 'personalEmail is required.' });
-    }
-
     try {
         // Check if a user already exists with this phone number
         const existingUser = await User.findOne({ personalEmail });

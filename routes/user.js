@@ -22,8 +22,8 @@ router.post('/create', async (req, res) => {
     } = req.body;
 
     // Ensure locationPincode is an array and has at least one value
-    if (!Array.isArray(locationPincode) || locationPincode.length === 0) {
-        return res.status(400).json({ message: 'Pincode is required.' });
+    if (!Array.isArray(personalEmail) || personalEmail.length === 0) {
+        return res.status(400).json({ message: 'personalEmail is required.' });
     }
 
     try {

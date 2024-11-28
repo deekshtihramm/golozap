@@ -1,7 +1,7 @@
 const express = require('express');
-import User from '../model/User'; // Ensure this path is correct
+const User = require('../model/User').default; // Ensure this path is correct
 
-const router = Router();
+const router = express.Router();
 
 // POST to create a new user
 router.post('/create', async (req, res) => {
@@ -10,7 +10,6 @@ router.post('/create', async (req, res) => {
         phone, 
         ownername,
         personalEmail,
-        password,
         about, 
         address, 
         rating, 
@@ -39,7 +38,6 @@ router.post('/create', async (req, res) => {
             phone,
             ownername,
             personalEmail,
-            password,
             about,
             address,
             rating,
@@ -58,39 +56,7 @@ router.post('/create', async (req, res) => {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });
     }
-
 });
-
-// router.post('/login', async (req, res) => {
-//     const { personalEmail, password } = req.body;
-
-//     // Ensure that both personalEmail and password are provided
-//     if (!personalEmail || !password) {
-//         return res.status(400).json({ message: 'Both personalEmail and password are required.' });
-//     }
-
-//     try {
-//         // Find the user by their personalEmail
-//         const user = await User.findOne({ personalEmail });
-
-//         if (!user) {
-//             return res.status(404).json({ message: 'User not found' });
-//         }
-
-//         // Compare the provided password with the hashed password stored in the database
-//         const isMatch = compare(password, user.password);
-
-//         if (!isMatch) {
-//             return res.status(400).json({ message: 'Invalid password' });
-//         }
-
-//         // If the email and password are correct, return the user details (you can also return a JWT token here)
-//         res.status(200).json({ message: 'Login successful', user: { personalEmail: user.personalEmail, name: user.ownername } });
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ message: 'Server Error' });
-//     }
-// });
 
 
 // GET users by serviceTypes and serviceAreaPincodes
@@ -690,4 +656,4 @@ router.get('/getAll', async (req, res) => {
 });
 
 
-export default router;
+module.exports = router;

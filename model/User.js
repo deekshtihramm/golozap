@@ -11,10 +11,10 @@ const ReviewSchema = new mongoose.Schema({
 // Define the User schema
 const UserSchema = new mongoose.Schema({
     uniqueId: { type: String, required: true, unique: true },
-    servicename: { type: String},
+    servicename: { type: String },
     phone: { type: String },
     ownername: { type: String, default: "GoloZap" },
-    personalEmail: { type: String, unique: true  },
+    personalEmail: { type: String, unique: true },
     serviceUrl: { type: String },
     about: { type: String },
     address: { type: String },
@@ -25,9 +25,12 @@ const UserSchema = new mongoose.Schema({
     rating: { type: Number, default: 0, min: 0, max: 5 }, // Average rating (between 0 and 5)
     reviewsCount: { type: Number, default: 0 }, // Total number of reviews
     serviceTypes: { type: [String] }, // Array of service types (e.g., ['Plumbing', 'Electrical'])
-    locationPincode:  { type: [String] }, // User's specific pincode
     serviceAreaPincodes: { type: [String] }, // Array of pincodes representing the service area
-    reviews: [ReviewSchema] // Array of reviews
+    reviews: [ReviewSchema], // Array of reviews
+    businesslocation: { 
+        Latitude: { type: Number }, // Latitude
+        Longitude: { type: Number } // Longitude
+    }
 });
 
 // Export the User model

@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema({
     reviews: [ReviewSchema], // Array of reviews
     businesslocation: { 
         Latitude: { type: Number }, // Latitude
-        Longitude: { type: Number, required: true } // Longitude
+        Longitude: { type: Number } // Longitude
     }
 });
 

@@ -22,10 +22,11 @@ const userRoutes = require('./routes/user');
 const areaRoutes = require('./routes/area');
 
 // Route middleware
+
 app.use('/api/users', userRoutes);
 app.use('/api', areaRoutes);
 
 // Start the server
 app.listen(port, async () => {
-  console.log(`Server running at http://localhost:${port}/`);
+  console.log(`Server running at https://golozap.ap-southeast-2.elasticbeanstalk.com`);
 });

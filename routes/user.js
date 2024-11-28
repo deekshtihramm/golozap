@@ -1,7 +1,5 @@
 const express = require('express');
 import User from '../model/User'; // Ensure this path is correct
-import { compare } from 'bcryptjs'; // Import bcrypt for password hashing
-
 
 const router = Router();
 

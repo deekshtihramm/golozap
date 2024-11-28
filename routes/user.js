@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../model/User').default; // Ensure this path is correct
+const User = require('../model/User'); // Ensure this path is correct
 
 const router = express.Router();
 

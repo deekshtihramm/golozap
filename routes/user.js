@@ -15,10 +15,10 @@ router.post('/create', async (req, res) => {
         address, 
         rating, 
         reviewsCount, 
-        serviceTypes, 
-        locationPincode, 
+        serviceTypes,
         reviews, 
-        serviceAreaPincodes 
+        serviceAreaPincodes ,
+        businesslocation
     } = req.body;
 
     try {
@@ -45,8 +45,8 @@ router.post('/create', async (req, res) => {
             rating,
             reviewsCount,
             serviceTypes,
-            locationPincode, // Store the array of pincodes
-            serviceAreaPincodes, // Add service area pincodes from request
+            serviceAreaPincodes,
+            businesslocation, // Add service area pincodes from request
             reviews // Accept reviews from the request body
         });
 
@@ -126,8 +126,6 @@ router.post('/search', async (req, res) => {
     }
 });
 
-
-
 // PUT to update serviceAreaPincodes for a user using personalEmail number
 router.put('/update/pincodes', async (req, res) => {
     const { personalEmail, serviceAreaPincodes } = req.body; // Use personalEmail from the request body
@@ -159,6 +157,7 @@ router.put('/update/pincodes', async (req, res) => {
     }
 });
 
+
 // Update servicename
 router.put('/update/servicename', async (req, res) => {
     const { personalEmail, servicename } = req.body;
@@ -171,6 +170,31 @@ router.put('/update/servicename', async (req, res) => {
         const updatedUser = await User.findOneAndUpdate(
             { personalEmail },
             { servicename },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+router.put('/update/budinessaddress', async (req, res) => {
+    const { personalEmail, businesslocation } = req.body;
+
+    if (!personalEmail || !businesslocation) {
+        return res.status(400).json({ message: 'personalEmail and servicename must be provided.' });
+    }
+
+    try {
+        const updatedUser = await User.findOneAndUpdate(
+            { personalEmail },
+            { businesslocation },
             { new: true }
         );
 
@@ -372,31 +396,31 @@ router.put('/update/serviceTypes', async (req, res) => {
     }
 });
 
-// Update locationPincode
-router.put('/update/locationPincode', async (req, res) => {
-    const { personalEmail, locationPincode } = req.body;
+// // Update locationPincode
+// router.put('/update/locationPincode', async (req, res) => {
+//     const { personalEmail, locationPincode } = req.body;
 
-    if (!personalEmail || !Array.isArray(locationPincode)) {
-        return res.status(400).json({ message: 'personalEmail and locationPincode array must be provided.' });
-    }
+//     if (!personalEmail || !Array.isArray(locationPincode)) {
+//         return res.status(400).json({ message: 'personalEmail and locationPincode array must be provided.' });
+//     }
 
-    try {
-        const updatedUser = await User.findOneAndUpdate(
-            { personalEmail },
-            { locationPincode },
-            { new: true }
-        );
+//     try {
+//         const updatedUser = await User.findOneAndUpdate(
+//             { personalEmail },
+//             { locationPincode },
+//             { new: true }
+//         );
 
-        if (!updatedUser) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
 
-        res.status(200).json(updatedUser);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
-    }
-});
+//         res.status(200).json(updatedUser);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server Error' });
+//     }
+// });
 
 
 // PUT to add a new review, increment reviewsCount, and update average rating

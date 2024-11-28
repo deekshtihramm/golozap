@@ -10,66 +10,53 @@ router.post('/create', async (req, res) => {
         phone, 
         ownername,
         personalEmail,
-        password, // Plain text password
+        password,
         about, 
         address, 
         rating, 
         reviewsCount, 
         serviceTypes,
         reviews, 
-        serviceAreaPincodes,
+        serviceAreaPincodes ,
         businesslocation
     } = req.body;
 
     try {
-        // Validate required fields
-        if (!personalEmail || !password || !phone) {
-            return res.status(400).json({ message: 'Email, password, and phone are required.' });
-        }
-
-        // Check if a user already exists with this email
+        // Check if a user already exists with this phone number
         const existingUser = await User.findOne({ personalEmail });
         
         if (existingUser) {
-            return res.status(409).json({ message: 'Account already exists with this email.' });
+            return res.status(409).json({ message: 'Account already created with this phone number.' });
         }
 
         // Import nanoid to generate unique IDs
         const { nanoid } = await import('nanoid');
         const uniqueId = nanoid(20); // Generate a unique 20-character string
 
-        // Create a new user
         const newUser = new User({
             uniqueId,
             servicename,
             phone,
             ownername,
             personalEmail,
-            password, // Store plain text password
+            password,
             about,
             address,
-            rating: rating || 0, // Default to 0 if not provided
-            reviewsCount: reviewsCount || 0, // Default to 0 if not provided
+            rating,
+            reviewsCount,
             serviceTypes,
             serviceAreaPincodes,
-            businesslocation,
-            reviews
+            businesslocation, // Add service area pincodes from request
+            reviews // Accept reviews from the request body
         });
 
         // Save the user to the database
         const savedUser = await newUser.save();
-        res.status(201).json({
-            message: 'User created successfully!',
-            user: {
-                uniqueId: savedUser.uniqueId,
-                servicename: savedUser.servicename,
-                personalEmail: savedUser.personalEmail
-            }
-        });
+        res.status(201).json(savedUser);
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server Error', error: err.message });
+        res.status(500).json({ message: 'Server Error' });
     }
 });
 

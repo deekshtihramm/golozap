@@ -61,36 +61,36 @@ router.post('/create', async (req, res) => {
 
 });
 
-router.post('/login', async (req, res) => {
-    const { personalEmail, password } = req.body;
+// router.post('/login', async (req, res) => {
+//     const { personalEmail, password } = req.body;
 
-    // Ensure that both personalEmail and password are provided
-    if (!personalEmail || !password) {
-        return res.status(400).json({ message: 'Both personalEmail and password are required.' });
-    }
+//     // Ensure that both personalEmail and password are provided
+//     if (!personalEmail || !password) {
+//         return res.status(400).json({ message: 'Both personalEmail and password are required.' });
+//     }
 
-    try {
-        // Find the user by their personalEmail
-        const user = await User.findOne({ personalEmail });
+//     try {
+//         // Find the user by their personalEmail
+//         const user = await User.findOne({ personalEmail });
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
 
-        // Compare the provided password with the hashed password stored in the database
-        const isMatch = compare(password, user.password);
+//         // Compare the provided password with the hashed password stored in the database
+//         const isMatch = compare(password, user.password);
 
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid password' });
-        }
+//         if (!isMatch) {
+//             return res.status(400).json({ message: 'Invalid password' });
+//         }
 
-        // If the email and password are correct, return the user details (you can also return a JWT token here)
-        res.status(200).json({ message: 'Login successful', user: { personalEmail: user.personalEmail, name: user.ownername } });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
-    }
-});
+//         // If the email and password are correct, return the user details (you can also return a JWT token here)
+//         res.status(200).json({ message: 'Login successful', user: { personalEmail: user.personalEmail, name: user.ownername } });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server Error' });
+//     }
+// });
 
 
 // GET users by serviceTypes and serviceAreaPincodes

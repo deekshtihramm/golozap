@@ -1,4 +1,4 @@
-import { Router } from 'express';
+const express = require('express');
 import User from '../model/User'; // Ensure this path is correct
 import { compare } from 'bcryptjs'; // Import bcrypt for password hashing
 
@@ -91,7 +91,6 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
-
 
 
 // GET users by serviceTypes and serviceAreaPincodes

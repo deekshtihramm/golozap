@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+const mongoose = require('mongoose');
 
 // Define the Review sub-schema
 const ReviewSchema = new Schema({

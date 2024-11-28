@@ -3,17 +3,14 @@ const User = require('../model/User').default; // Ensure this path is correct
 
 const router = express.Router();
 
-const bcrypt = require('bcrypt'); // Import bcrypt for password hashing
-const { nanoid } = await import('nanoid'); // Import nanoid for generating unique IDs
-
 // POST to create a new user
 router.post('/create', async (req, res) => {
     const { 
         servicename, 
         phone, 
-        ownername, 
-        personalEmail, 
-        password, // Add password field
+        ownername,
+        personalEmail,
+        password, // Plain text password
         about, 
         address, 
         rating, 
@@ -25,29 +22,34 @@ router.post('/create', async (req, res) => {
     } = req.body;
 
     try {
+        // Validate required fields
+        if (!personalEmail || !password || !phone) {
+            return res.status(400).json({ message: 'Email, password, and phone are required.' });
+        }
+
         // Check if a user already exists with this email
         const existingUser = await User.findOne({ personalEmail });
-
+        
         if (existingUser) {
             return res.status(409).json({ message: 'Account already exists with this email.' });
         }
 
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10); // Hash with a salt round of 10
-
+        // Import nanoid to generate unique IDs
+        const { nanoid } = await import('nanoid');
         const uniqueId = nanoid(20); // Generate a unique 20-character string
 
+        // Create a new user
         const newUser = new User({
             uniqueId,
             servicename,
             phone,
             ownername,
             personalEmail,
-            password: hashedPassword, // Store the hashed password
+            password, // Store plain text password
             about,
             address,
-            rating,
-            reviewsCount,
+            rating: rating || 0, // Default to 0 if not provided
+            reviewsCount: reviewsCount || 0, // Default to 0 if not provided
             serviceTypes,
             serviceAreaPincodes,
             businesslocation,
@@ -56,47 +58,18 @@ router.post('/create', async (req, res) => {
 
         // Save the user to the database
         const savedUser = await newUser.save();
-        res.status(201).json({ message: 'User created successfully!', userId: savedUser.uniqueId });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
-    }
-});
-
-// POST for user login
-router.post('/login', async (req, res) => {
-    const { personalEmail, password } = req.body;
-
-    try {
-        // Check if the user exists
-        const user = await User.findOne({ personalEmail });
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        // Compare provided password with stored hash
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid credentials.' });
-        }
-
-        // Respond with user data or a token
-        res.status(200).json({ 
-            message: 'Login successful!', 
+        res.status(201).json({
+            message: 'User created successfully!',
             user: {
-                uniqueId: user.uniqueId,
-                servicename: user.servicename,
-                ownername: user.ownername,
-                personalEmail: user.personalEmail
+                uniqueId: savedUser.uniqueId,
+                servicename: savedUser.servicename,
+                personalEmail: savedUser.personalEmail
             }
         });
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 

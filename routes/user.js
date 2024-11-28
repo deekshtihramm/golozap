@@ -184,30 +184,35 @@ router.put('/update/servicename', async (req, res) => {
     }
 });
 
-router.put('/update/budinessaddress', async (req, res) => {
+router.put('/update/businessaddress', async (req, res) => {
     const { personalEmail, businesslocation } = req.body;
 
-    if (!personalEmail || !businesslocation) {
-        return res.status(400).json({ message: 'personalEmail and servicename must be provided.' });
+    // Validate the required fields
+    if (!personalEmail || !businesslocation || !businesslocation.Latitude || !businesslocation.Longitude) {
+        return res.status(400).json({ message: 'personalEmail and businesslocation with Latitude and Longitude must be provided.' });
     }
 
     try {
+        // Find the user by personalEmail and update the businesslocation
         const updatedUser = await User.findOneAndUpdate(
             { personalEmail },
-            { businesslocation },
-            { new: true }
+            { businesslocation }, // Update the business location
+            { new: true } // Return the updated document
         );
 
+        // If no user was found
         if (!updatedUser) {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        // Return the updated user object
         res.status(200).json(updatedUser);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
 
 // Update ownername
 router.put('/update/ownername', async (req, res) => {

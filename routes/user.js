@@ -25,7 +25,6 @@ router.post('/create', async (req, res) => {
     try {
         // Check if a user already exists with this email
         const existingUser = await User.findOne({ personalEmail });
-        
         if (existingUser) {
             return res.status(409).json({ message: 'An account with this email already exists.' });
         }
@@ -35,9 +34,9 @@ router.post('/create', async (req, res) => {
             return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
         }
 
-        // Import nanoid to generate unique IDs
+        // Generate a unique ID
         const { nanoid } = await import('nanoid');
-        const uniqueId = nanoid(20); // Generate a unique 20-character string
+        const uniqueId = nanoid(20);
 
         // Hash the password
         const saltRounds = 10;
@@ -58,14 +57,14 @@ router.post('/create', async (req, res) => {
             serviceAreaPincodes,
             businesslocation, 
             reviews,
-            hashedPassword // Store the hashed password in the database
+            Password: hashedPassword // Store the hashed password
         });
 
         // Save the user to the database
         const savedUser = await newUser.save();
 
         // Remove sensitive fields like password from the response
-        const { hashedPassword: _, ...userWithoutPassword } = savedUser.toObject();
+        const { Password, ...userWithoutPassword } = savedUser.toObject();
         res.status(201).json(userWithoutPassword);
 
     } catch (err) {
@@ -73,7 +72,6 @@ router.post('/create', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
-
 
 // POST for user login
 router.post('/login', async (req, res) => {
@@ -83,20 +81,22 @@ router.post('/login', async (req, res) => {
         // Check if the user exists
         const user = await User.findOne({ personalEmail });
         if (!user) {
-            return res.status(404).json({ message: 'User not found. Please check your email.' });
+            return res.status(401).json({ message: 'Invalid email or password.' });
         }
 
         // Compare the provided password with the hashed password
-        const isPasswordValid = await bcrypt.compare(Password, user.hashedPassword);
+        const isPasswordValid = await bcrypt.compare(Password, user.Password);
         if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid password. Please try again.' });
+            return res.status(401).json({ message: 'Invalid email or password.' });
         }
 
-        // Optionally: Generate a token (e.g., JWT) here for session management
-
+    
         // Return success response with user details (excluding sensitive fields)
-        const { hashedPassword, ...userWithoutPassword } = user.toObject();
-        res.status(200).json({ message: 'Login successful', user: userWithoutPassword });
+        const { Password, ...userWithoutPassword } = user.toObject();
+        res.status(200).json({ 
+            message: 'Login successful',
+            user: userWithoutPassword 
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });

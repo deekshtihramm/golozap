@@ -31,7 +31,7 @@ const UserSchema = new mongoose.Schema({
         Longitude: { type: Number } // Longitude
     },
     Password: { type: String } // Plain text password (NOT SECURE)
-});
+});  
 
 // Export the User model
 module.exports = mongoose.model('User', UserSchema);

@@ -8,7 +8,6 @@ const ReviewSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now } // Date of the review
 });
 
-// Define the User schema
 const UserSchema = new mongoose.Schema({
     uniqueId: { type: String, required: true, unique: true },
     servicename: { type: String },
@@ -18,9 +17,9 @@ const UserSchema = new mongoose.Schema({
     serviceUrl: { type: String },
     about: { type: String },
     address: { type: String },
-    businessName: { type: String}, // Added business name
+    businessName: { type: String }, // Added business name
     businessEmails: { type: [String], unique: true }, // Array of business emails
-    businessPhoneNumbers: { type: [String]}, // Array of business phone numbers
+    businessPhoneNumbers: { type: [String] }, // Array of business phone numbers
     businessAccountStatus: { type: Boolean, default: false }, // Account status as true or false
     rating: { type: Number, default: 0, min: 0, max: 5 }, // Average rating (between 0 and 5)
     reviewsCount: { type: Number, default: 0 }, // Total number of reviews
@@ -30,7 +29,8 @@ const UserSchema = new mongoose.Schema({
     businesslocation: { 
         Latitude: { type: Number }, // Latitude
         Longitude: { type: Number } // Longitude
-    }
+    },
+    Password: { type: String } // Plain text password (NOT SECURE)
 });
 
 // Export the User model

@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const User = require('../model/User'); // Ensure this path is correct
 
 const router = express.Router();
@@ -16,22 +17,33 @@ router.post('/create', async (req, res) => {
         reviewsCount, 
         serviceTypes,
         reviews, 
-        serviceAreaPincodes ,
-        businesslocation
+        serviceAreaPincodes,
+        businesslocation,
+        Password // Accept plain password from the request body
     } = req.body;
 
     try {
-        // Check if a user already exists with this phone number
+        // Check if a user already exists with this email
         const existingUser = await User.findOne({ personalEmail });
         
         if (existingUser) {
-            return res.status(409).json({ message: 'Account already created with this phone number.' });
+            return res.status(409).json({ message: 'An account with this email already exists.' });
+        }
+
+        // Validate Password
+        if (!Password || Password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
         }
 
         // Import nanoid to generate unique IDs
         const { nanoid } = await import('nanoid');
         const uniqueId = nanoid(20); // Generate a unique 20-character string
 
+        // Hash the password
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(Password, saltRounds);
+
+        // Create a new user object
         const newUser = new User({
             uniqueId,
             servicename,
@@ -44,14 +56,47 @@ router.post('/create', async (req, res) => {
             reviewsCount,
             serviceTypes,
             serviceAreaPincodes,
-            businesslocation, // Add service area pincodes from request
-            reviews // Accept reviews from the request body
+            businesslocation, 
+            reviews,
+            hashedPassword // Store the hashed password in the database
         });
 
         // Save the user to the database
         const savedUser = await newUser.save();
-        res.status(201).json(savedUser);
 
+        // Remove sensitive fields like password from the response
+        const { hashedPassword: _, ...userWithoutPassword } = savedUser.toObject();
+        res.status(201).json(userWithoutPassword);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+
+// POST for user login
+router.post('/login', async (req, res) => {
+    const { personalEmail, Password } = req.body;
+
+    try {
+        // Check if the user exists
+        const user = await User.findOne({ personalEmail });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found. Please check your email.' });
+        }
+
+        // Compare the provided password with the hashed password
+        const isPasswordValid = await bcrypt.compare(Password, user.hashedPassword);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid password. Please try again.' });
+        }
+
+        // Optionally: Generate a token (e.g., JWT) here for session management
+
+        // Return success response with user details (excluding sensitive fields)
+        const { hashedPassword, ...userWithoutPassword } = user.toObject();
+        res.status(200).json({ message: 'Login successful', user: userWithoutPassword });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });

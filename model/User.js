@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema({
     about: { type: String },
     address: { type: String },
     businessName: { type: String }, // Added business name
-    businessEmails: { type: [String], unique: true }, // Array of business emails
+    businessEmails: { type: [String] }, // Array of business emails
     businessPhoneNumbers: { type: [String] }, // Array of business phone numbers
     businessAccountStatus: { type: Boolean, default: false }, // Account status as true or false
     rating: { type: Number, default: 0, min: 0, max: 5 }, // Average rating (between 0 and 5)

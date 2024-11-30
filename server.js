@@ -4,7 +4,8 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose'); // Import mongoose
 const cors = require('cors');
-
+const path = require('path');
+const fs = require('fs');
 
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI;
@@ -28,6 +29,18 @@ const areaRoutes = require('./routes/area');
 // Route middleware
 app.use('/api/users', userRoutes);
 app.use('/api', areaRoutes);
+
+// Serve ads.txt
+app.get('/ads.txt', (req, res) => {
+  const adsFilePath = path.join(__dirname, 'ads.txt');
+
+  // Check if the ads.txt file exists
+  if (fs.existsSync(adsFilePath)) {
+    res.sendFile(adsFilePath); // Serve the file
+  } else {
+    res.status(404).send('ads.txt file not found');
+  }
+});
 
 // Start the server
 app.listen(port, async () => {

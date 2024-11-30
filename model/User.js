@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema({
         Latitude: { type: Number }, // Latitude
         Longitude: { type: Number } // Longitude
     },
-    Password: { type: String } // Plain text password (NOT SECURE)
+    password: { type: String } // Plain text password (NOT SECURE)
 });  
 
 // Export the User model

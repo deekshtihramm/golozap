@@ -19,7 +19,7 @@ router.post('/create', async (req, res) => {
         reviews, 
         serviceAreaPincodes,
         businesslocation,
-        Password // Accept plain password from the request body
+        password // Accept plain password from the request body
     } = req.body;
 
     try {
@@ -30,7 +30,7 @@ router.post('/create', async (req, res) => {
         }
 
         // Validate Password
-        if (!Password || Password.length < 6) {
+        if (!password || password.length < 6) {
             return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
         }
 
@@ -40,7 +40,7 @@ router.post('/create', async (req, res) => {
 
         // Hash the password
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(Password, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Create a new user object
         const newUser = new User({
@@ -57,14 +57,14 @@ router.post('/create', async (req, res) => {
             serviceAreaPincodes,
             businesslocation, 
             reviews,
-            Password: hashedPassword // Store the hashed password
+            password: hashedPassword // Store the hashed password
         });
 
         // Save the user to the database
         const savedUser = await newUser.save();
 
         // Remove sensitive fields like password from the response
-        const { Password, ...userWithoutPassword } = savedUser.toObject();
+        const { password, ...userWithoutPassword } = savedUser.toObject();
         res.status(201).json(userWithoutPassword);
 
     } catch (err) {

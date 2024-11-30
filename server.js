@@ -31,7 +31,7 @@ app.use('/api/users', userRoutes);
 app.use('/api', areaRoutes);
 
 // Serve ads.txt
-app.get('/ads.txt', (req, res) => {
+app.get('/app-ads.txt', (req, res) => {
   const adsFilePath = path.join(__dirname, 'ads.txt');
 
   // Check if the ads.txt file exists

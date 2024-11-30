@@ -42,6 +42,14 @@ app.get('/app-ads.txt', (req, res) => {
   }
 });
 
+
+// Serve ads.txt
+app.get('/', (req, res) => {
+  
+  res.status(404).send('Wellcome to GOloZap');
+
+});
+
 // Start the server
 app.listen(port, async () => {
   console.log(`Server running at https://golozap.vercel.app`);

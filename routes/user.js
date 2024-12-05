@@ -2,7 +2,9 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../model/User'); // Ensure this path is correct
 
-const router = express.Router();
+const router = express.Router()
+const bcrypt = require('bcryptjs'); // Make sure bcryptjs is installed
+const { nanoid } = require('nanoid');
 
 // POST to create a new user
 router.post('/create', async (req, res) => {
@@ -23,19 +25,24 @@ router.post('/create', async (req, res) => {
     } = req.body;
 
     try {
+        // Validate that all required fields are present
+        if (!servicename || !personalEmail || !password) {
+            return res.status(400).json({ message: 'Service name, email, and password are required.' });
+        }
+
         // Check if a user already exists with this email
         const existingUser = await User.findOne({ personalEmail });
         if (existingUser) {
             return res.status(409).json({ message: 'An account with this email already exists.' });
         }
 
-        // Validate Password
-        if (!password || password.length < 6) {
-            return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+        // Validate Password - at least 6 characters and at least one letter, one number
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long and contain at least one letter and one number.' });
         }
 
         // Generate a unique ID
-        const { nanoid } = await import('nanoid');
         const uniqueId = nanoid(20);
 
         // Hash the password

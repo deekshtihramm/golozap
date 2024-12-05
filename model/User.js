@@ -27,11 +27,11 @@ const UserSchema = new mongoose.Schema(
         serviceTypes: { type: [String] }, // Array of service types (e.g., ['Plumbing', 'Electrical'])
         serviceAreaPincodes: { type: [String] }, // Array of pincodes representing the service area
         reviews: [ReviewSchema], // Array of reviews
+        password: { type: String }, // Plain text password (NOT SECURE)
         businesslocation: { 
             Latitude: { type: Number }, // Latitude
             Longitude: { type: Number } // Longitude
         },
-        password: { type: String }, // Plain text password (NOT SECURE)
 
         // Version control fields
         version: { type: Number, default: 1 }, // Incremented manually on updates

@@ -2,8 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../model/User'); // Ensure this path is correct
 
-const router = express.Router()
-const { nanoid } = require('nanoid');
+const router = express.Router();
 
 // POST to create a new user
 router.post('/create', async (req, res) => {
@@ -19,34 +18,25 @@ router.post('/create', async (req, res) => {
         serviceTypes,
         reviews, 
         serviceAreaPincodes,
-        businesslocation,
-        password // Accept plain password from the request body
+        password, // Accept plain password from the request body
+        businesslocation 
     } = req.body;
 
     try {
-        // Validate that all required fields are present
-        if (!servicename || !personalEmail || !password) {
-            return res.status(400).json({ message: 'Service name, email, and password are required.' });
-        }
-
         // Check if a user already exists with this email
         const existingUser = await User.findOne({ personalEmail });
         if (existingUser) {
             return res.status(409).json({ message: 'An account with this email already exists.' });
         }
 
-        // Validate Password - at least 6 characters and at least one letter, one number
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
-        if (!passwordRegex.test(password)) {
-            return res.status(400).json({ message: 'Password must be at least 6 characters long and contain at least one letter and one number.' });
+        // Validate Password
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
         }
 
         // Generate a unique ID
+        const { nanoid } = await import('nanoid');
         const uniqueId = nanoid(20);
-
-        // Hash the password
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Create a new user object
         const newUser = new User({
@@ -63,21 +53,22 @@ router.post('/create', async (req, res) => {
             serviceAreaPincodes,
             businesslocation, 
             reviews,
-            password: hashedPassword // Store the hashed password
+            password // Store the plain text password
         });
 
         // Save the user to the database
         const savedUser = await newUser.save();
 
         // Remove sensitive fields like password from the response
-        const { password, ...userWithoutPassword } = savedUser.toObject();
-        res.status(201).json(userWithoutPassword);
+        // const { password, ...userWithoutPassword } = savedUser.toObject();
+        res.status(201).json(savedUser);
 
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
 
 // POST for user login
 router.post('/login', async (req, res) => {

@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const User = require('../model/User'); // Ensure this path is correct
 
 const router = express.Router()
-const bcrypt = require('bcryptjs'); // Make sure bcryptjs is installed
 const { nanoid } = require('nanoid');
 
 // POST to create a new user

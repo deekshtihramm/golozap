@@ -69,6 +69,7 @@ router.post('/create', async (req, res) => {
     }
 });
 
+
 // POST to login
 router.post('/login', async (req, res) => {
     const { personalEmail, password } = req.body;
@@ -86,8 +87,7 @@ router.post('/login', async (req, res) => {
         }
 
         // Compare the provided password with the stored password
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
+        if (password !== user.password) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 

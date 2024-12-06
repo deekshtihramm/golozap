@@ -69,31 +69,33 @@ router.post('/create', async (req, res) => {
     }
 });
 
-
-// POST for user login
+// POST to login
 router.post('/login', async (req, res) => {
-    const { personalEmail, Password } = req.body;
+    const { personalEmail, password } = req.body;
 
     try {
+        // Validate input
+        if (!personalEmail || !password) {
+            return res.status(400).json({ message: 'Email and password are required.' });
+        }
+
         // Check if the user exists
         const user = await User.findOne({ personalEmail });
         if (!user) {
-            return res.status(401).json({ message: 'Invalid email or password.' });
+            return res.status(404).json({ message: 'User not found.' });
         }
 
-        // Compare the provided password with the hashed password
-        const isPasswordValid = await bcrypt.compare(Password, user.Password);
+        // Compare the provided password with the stored password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid email or password.' });
+            return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-    
-        // Return success response with user details (excluding sensitive fields)
-        const { Password, ...userWithoutPassword } = user.toObject();
-        res.status(200).json({ 
-            message: 'Login successful',
-            user: userWithoutPassword 
-        });
+        // Remove sensitive fields from the response
+        const { password: _, ...userWithoutPassword } = user.toObject();
+
+        // Respond with user details
+        res.status(200).json(userWithoutPassword);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });

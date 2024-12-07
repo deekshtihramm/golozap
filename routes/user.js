@@ -513,6 +513,34 @@ router.put('/update/reviews', async (req, res) => {
     }
 });
 
+// POST to fetch all reviews for a user by their email (uses body instead of query params)
+router.post('/getReviewsByUser', async (req, res) => {
+    const { personalEmail } = req.body; // Email provided in the body
+
+    // Validate the request body
+    if (!personalEmail) {
+        return res.status(400).json({ message: 'personalEmail is required.' });
+    }
+
+    try {
+        // Find the user by email
+        const user = await User.findOne({ personalEmail }, { reviews: 1, _id: 0 }); // Fetch only reviews field
+
+        // Check if user exists
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Return the user's reviews
+        res.status(200).json({ reviews: user.reviews });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+
 // GET user by phone number
 router.post('/getBypersonalEmail', async (req, res) => {
     const { personalEmail } = req.body; // Use query parameter

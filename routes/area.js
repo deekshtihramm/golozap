@@ -155,4 +155,26 @@ router.post('/state/villages', async (req, res) => {
   }
 });
 
+
+// GET API to retrieve all data for a given state, including districts, sub-districts, and villages
+router.get('/state/allData', async (req, res) => {
+  try {
+    const { stateName } = req.query; // Retrieve state name from query parameters
+
+    // Find the state by name and retrieve all the data (districts, sub-districts, villages)
+    const stateData = await State.findOne({ state: stateName });
+
+    if (!stateData) {
+      return res.status(404).json({ message: 'State not found' });
+    }
+
+    // Respond with the complete state data
+    res.json(stateData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while fetching state data' });
+  }
+});
+
+
 module.exports = router;

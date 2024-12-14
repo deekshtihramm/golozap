@@ -51,17 +51,17 @@ router.post('/state/get2', async (req, res) => {
 
     // Validate that stateName is provided
     if (!stateName || typeof stateName !== 'string' || stateName.trim().length === 0) {
-      return res.status(400).json({ message: 'Invalid or missing state name. Please provide a valid state name.' });
+      return res.status(400).json({ message: 'Invalid or missing state name' });
     }
 
     // Use a regex to find states that contain the stateName (partial match)
     const stateData = await State.find({
       state: { $regex: stateName, $options: 'i' } // 'i' makes it case-insensitive
-    });
+    }).limit(10);  // Limit the result to 10
 
-    // If no states are found, return 404 with the searched term
+    // If no states are found, return 404
     if (stateData.length === 0) {
-      return res.status(404).json({ message: `No states found matching the search criteria for "${stateName}"` });
+      return res.status(404).json({ message: 'No states found matching the search criteria' });
     }
 
     // Respond with all matching state data
@@ -69,9 +69,10 @@ router.post('/state/get2', async (req, res) => {
   } catch (error) {
     // Log the error and send a generic 500 error
     console.error(error);
-    res.status(500).json({ message: 'An error occurred while fetching state data. Please try again later.' });
+    res.status(500).json({ message: 'An error occurred while fetching state data' });
   }
 });
+
 
 
 

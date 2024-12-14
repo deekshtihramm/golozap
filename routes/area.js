@@ -64,14 +64,15 @@ router.post('/state/get2', async (req, res) => {
       return res.status(404).json({ message: 'No states found matching the search criteria' });
     }
 
-    // Respond with all matching state data
-    res.json(stateData);
+    // Respond with states along with their corresponding districts
+    res.json(stateData); // Assuming each state contains a `districts` array in the schema
   } catch (error) {
     // Log the error and send a generic 500 error
     console.error(error);
     res.status(500).json({ message: 'An error occurred while fetching state data' });
   }
 });
+
 
 
 

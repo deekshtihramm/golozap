@@ -45,6 +45,35 @@ router.post('/state/get', async (req, res) => {
   }
 });
 
+router.post('/state/get2', async (req, res) => {
+  try {
+    const { stateName } = req.body; // Read state name from request body
+
+    // Validate that stateName is provided
+    if (!stateName || typeof stateName !== 'string' || stateName.trim().length === 0) {
+      return res.status(400).json({ message: 'Invalid or missing state name' });
+    }
+
+    // Use a regex to find states that contain the stateName (partial match)
+    const stateData = await State.find({
+      state: { $regex: stateName, $options: 'i' } // 'i' makes it case-insensitive
+    });
+
+    // If no states are found, return 404
+    if (stateData.length === 0) {
+      return res.status(404).json({ message: 'No states found matching the search criteria' });
+    }
+
+    // Respond with all matching state data
+    res.json(stateData);
+  } catch (error) {
+    // Log the error and send a generic 500 error
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while fetching state data' });
+  }
+});
+
+
 
 // GET API to retrieve only state names
 router.get('/state/names', async (req, res) => {

@@ -47,27 +47,25 @@ router.post('/state/get', async (req, res) => {
 
 router.post('/state/get2', async (req, res) => {
   try {
-    const { stateName } = req.body; // Read state name from request body
+    const { stateName } = req.body;
 
-    // Validate that stateName is provided
     if (!stateName || typeof stateName !== 'string' || stateName.trim().length === 0) {
       return res.status(400).json({ message: 'Invalid or missing state name' });
     }
 
-    // Use a regex to find states that contain the stateName (partial match)
     const stateData = await State.find({
-      state: { $regex: stateName, $options: 'i' } // 'i' makes it case-insensitive
-    }).limit(10);  // Limit the result to 10
+      state: { $regex: stateName, $options: 'i' }
+    }).limit(10);  // Limit to 10 results
 
-    // If no states are found, return 404
+    // Log the data before responding
+    console.log("State data fetched:", stateData);
+
     if (stateData.length === 0) {
       return res.status(404).json({ message: 'No states found matching the search criteria' });
     }
 
-    // Respond with states along with their corresponding districts
-    res.json(stateData); // Assuming each state contains a `districts` array in the schema
+    res.json(stateData);  // Respond with states and districts data
   } catch (error) {
-    // Log the error and send a generic 500 error
     console.error(error);
     res.status(500).json({ message: 'An error occurred while fetching state data' });
   }

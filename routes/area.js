@@ -45,7 +45,7 @@ router.post('/state/get', async (req, res) => {
   }
 });
 
-app.post('/api/state/get2', async (req, res) => {
+app.post('/state/get2', async (req, res) => {
   try {
     const { searchName } = req.body;
 

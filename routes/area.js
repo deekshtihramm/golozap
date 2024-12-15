@@ -45,12 +45,17 @@ router.post('/state/get', async (req, res) => {
   }
 });
 
-app.post('/state/get2', async (req, res) => {
+app.post('/api/state/get2', async (req, res) => {
   try {
     const { searchName } = req.body;
 
+    // Handle invalid or missing searchName
+    if (typeof searchName !== 'string') {
+      return res.status(400).json({ message: 'Invalid or missing search input' });
+    }
+
     // If searchName is empty, fetch all data
-    const regex = searchName ? new RegExp(searchName, 'i') : /.*/; // Match everything if searchName is empty
+    const regex = searchName.trim() ? new RegExp(searchName, 'i') : /.*/; // Match everything if searchName is empty
 
     // Query to match state, district, sub-district, or village
     const states = await State.find({
@@ -73,6 +78,7 @@ app.post('/state/get2', async (req, res) => {
     res.status(500).json({ message: 'An error occurred while fetching data' });
   }
 });
+
 
 // GET API to retrieve only state names
 router.get('/state/names', async (req, res) => {

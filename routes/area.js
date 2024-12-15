@@ -45,14 +45,9 @@ router.post('/state/get', async (req, res) => {
   }
 });
 
-app.post('/api/state/get2', async (req, res) => {
+app.post('/state/get2', async (req, res) => {
   try {
     const { searchName } = req.body;
-
-    // Handle invalid or missing searchName
-    if (searchName && (typeof searchName !== 'string' || searchName.trim().length === 0)) {
-      return res.status(400).json({ message: 'Invalid search input. Please provide a valid string.' });
-    }
 
     // If searchName is empty, fetch all data
     const regex = searchName ? new RegExp(searchName, 'i') : /.*/; // Match everything if searchName is empty
@@ -73,13 +68,11 @@ app.post('/api/state/get2', async (req, res) => {
 
     // Return the filtered results
     res.json(states);
-
   } catch (error) {
     console.error('Error fetching data:', error);
-    res.status(500).json({ message: 'An error occurred while fetching data. Please try again later.' });
+    res.status(500).json({ message: 'An error occurred while fetching data' });
   }
 });
-
 
 // GET API to retrieve only state names
 router.get('/state/names', async (req, res) => {

@@ -51,7 +51,7 @@ app.post('/api/state/get2', async (req, res) => {
 
     // Handle invalid or missing searchName
     if (searchName && (typeof searchName !== 'string' || searchName.trim().length === 0)) {
-      return res.status(400).json({ message: 'Invalid or missing search input' });
+      return res.status(400).json({ message: 'Invalid search input. Please provide a valid string.' });
     }
 
     // If searchName is empty, fetch all data
@@ -73,9 +73,10 @@ app.post('/api/state/get2', async (req, res) => {
 
     // Return the filtered results
     res.json(states);
+
   } catch (error) {
     console.error('Error fetching data:', error);
-    res.status(500).json({ message: 'An error occurred while fetching data' });
+    res.status(500).json({ message: 'An error occurred while fetching data. Please try again later.' });
   }
 });
 

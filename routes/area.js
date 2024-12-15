@@ -45,60 +45,39 @@ router.post('/state/get', async (req, res) => {
   }
 });
 
-router.post('/state/get2', async (req, res) => {
+app.post('/api/state/get2', async (req, res) => {
   try {
     const { searchName } = req.body;
 
-    if (!searchName || typeof searchName !== 'string' || searchName.trim().length === 0) {
+    // Handle invalid or missing searchName
+    if (searchName && (typeof searchName !== 'string' || searchName.trim().length === 0)) {
       return res.status(400).json({ message: 'Invalid or missing search input' });
     }
 
-    const regex = new RegExp(searchName, 'i'); // Case-insensitive search
+    // If searchName is empty, fetch all data
+    const regex = searchName ? new RegExp(searchName, 'i') : /.*/; // Match everything if searchName is empty
 
-    // Directly querying the database to filter out unnecessary data
-    const states = await State.aggregate([
-      {
-        $match: {
-          $or: [
-            { state: regex },
-            { 'districts.district': regex },
-            { 'districts.subDistricts.subDistrict': regex },
-            { 'districts.subDistricts.villages': regex }
-          ]
-        }
-      },
-      {
-        $project: {
-          state: 1,
-          districts: {
-            $filter: {
-              input: '$districts',
-              as: 'district',
-              cond: {
-                $or: [
-                  { $regexMatch: { input: '$$district.district', regex: regex } },
-                  { $regexMatch: { input: '$$district.subDistricts.subDistrict', regex: regex } },
-                  { $regexMatch: { input: { $arrayElemAt: ['$$district.subDistricts.villages', 0] }, regex: regex } }
-                ]
-              }
-            }
-          }
-        }
-      }
-    ]);
+    // Query to match state, district, sub-district, or village
+    const states = await State.find({
+      $or: [
+        { state: regex },
+        { 'districts.district': regex },
+        { 'districts.subDistricts.subDistrict': regex },
+        { 'districts.subDistricts.villages': regex },
+      ],
+    });
 
     if (states.length === 0) {
       return res.status(404).json({ message: 'No matching data found' });
     }
 
-    res.json(states); // Return the filtered results
+    // Return the filtered results
+    res.json(states);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ message: 'An error occurred while fetching data' });
   }
 });
-
-
 
 
 // GET API to retrieve only state names

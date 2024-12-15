@@ -46,28 +46,33 @@ router.post('/state/get', async (req, res) => {
 });
 
 router.post('/state/get2', async (req, res) => {
-  try {
-    // Fetch all state data from the database
-    const stateData = await State.find();
+    try {
+        const { searchKey } = req.body;
 
-    // Log the data for debugging purposes
-    console.log('Fetched all state data:', stateData);
+        if (!searchKey || typeof searchKey !== 'string' || searchKey.trim().length === 0) {
+            return res.status(400).json({ message: 'Invalid or missing search key' });
+        }
 
-    // Check if the database has any state data
-    if (stateData.length === 0) {
-      return res.status(404).json({ message: 'No state data found' });
+        const regex = new RegExp(searchKey, 'i'); // Case-insensitive search
+
+        const results = await State.find({
+            $or: [
+                { state: { $regex: regex } }, // Search by state name
+                { "districts.district": { $regex: regex } }, // Search by district name
+                { "districts.subDistricts.subDistrict": { $regex: regex } }, // Search by sub-district name
+                { "districts.subDistricts.villages": { $regex: regex } } // Search by village name
+            ]
+        });
+
+        if (!results || results.length === 0) {
+            return res.status(404).json({ message: 'No matching data found' });
+        }
+
+        res.json({ success: true, data: results });
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        res.status(500).json({ message: 'An error occurred while fetching data' });
     }
-
-    // Respond with the fetched data
-    res.status(200).json({ success: true, data: stateData });
-  } catch (error) {
-    // Log the error and respond with an appropriate message
-    console.error('Error fetching state data:', error);
-    res.status(500).json({
-      message: 'An error occurred while fetching state data',
-      error: error.message,
-    });
-  }
 });
 
 

@@ -46,35 +46,61 @@ router.post('/state/get', async (req, res) => {
 });
 
 router.post('/state/get2', async (req, res) => {
-    try {
-        const { searchKey } = req.body;
+  try {
+    const { searchName } = req.body; // Dynamic search query from client
 
-        if (!searchKey || typeof searchKey !== 'string' || searchKey.trim().length === 0) {
-            return res.status(400).json({ message: 'Invalid or missing search key' });
-        }
-
-        const regex = new RegExp(searchKey, 'i'); // Case-insensitive search
-
-        const results = await State.find({
-            $or: [
-                { state: { $regex: regex } }, // Search by state name
-                { "districts.district": { $regex: regex } }, // Search by district name
-                { "districts.subDistricts.subDistrict": { $regex: regex } }, // Search by sub-district name
-                { "districts.subDistricts.villages": { $regex: regex } } // Search by village name
-            ]
-        });
-
-        if (!results || results.length === 0) {
-            return res.status(404).json({ message: 'No matching data found' });
-        }
-
-        res.json({ success: true, data: results });
-    } catch (error) {
-        console.error("Error fetching data:", error);
-        res.status(500).json({ message: 'An error occurred while fetching data' });
+    if (!searchName || typeof searchName !== 'string' || searchName.trim().length === 0) {
+      return res.status(400).json({ message: 'Invalid or missing search input' });
     }
-});
 
+    const regex = new RegExp(searchName, 'i'); // Case-insensitive search
+
+    // Query to match state, district, sub-district, or village
+    const states = await State.find({
+      $or: [
+        { state: regex }, // Match state name
+        { 'districts.district': regex }, // Match district name
+        { 'districts.subDistricts.subDistrict': regex }, // Match sub-district name
+        { 'districts.subDistricts.villages': regex }, // Match village name
+      ],
+    });
+
+    if (states.length === 0) {
+      return res.status(404).json({ message: 'No matching data found' });
+    }
+
+    // Filter results to include only matching data
+    const filteredResults = states.map(state => {
+      const matchingDistricts = state.districts.filter(district => {
+        const districtMatch = regex.test(district.district);
+        const matchingSubDistricts = district.subDistricts.filter(subDistrict => {
+          const subDistrictMatch = regex.test(subDistrict.subDistrict);
+          const matchingVillages = subDistrict.villages.filter(village => regex.test(village));
+          if (matchingVillages.length > 0 || subDistrictMatch) {
+            subDistrict.villages = matchingVillages; // Keep only matching villages
+            return true;
+          }
+          return false;
+        });
+        if (matchingSubDistricts.length > 0 || districtMatch) {
+          district.subDistricts = matchingSubDistricts; // Keep only matching sub-districts
+          return true;
+        }
+        return false;
+      });
+      if (matchingDistricts.length > 0 || regex.test(state.state)) {
+        state.districts = matchingDistricts; // Keep only matching districts
+        return state;
+      }
+      return null;
+    }).filter(result => result !== null); // Remove null entries
+
+    res.json(filteredResults); // Return filtered results
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({ message: 'An error occurred while fetching data' });
+  }
+});
 
 
 

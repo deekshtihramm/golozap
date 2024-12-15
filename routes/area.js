@@ -47,27 +47,26 @@ router.post('/state/get', async (req, res) => {
 
 router.post('/state/get2', async (req, res) => {
   try {
-    const { stateName } = req.body;
+    // Fetch all state data from the database
+    const stateData = await State.find();
 
-    if (!stateName || typeof stateName !== 'string' || stateName.trim().length === 0) {
-      return res.status(400).json({ message: 'Invalid or missing state name' });
-    }
+    // Log the data for debugging purposes
+    console.log('Fetched all state data:', stateData);
 
-    const stateData = await State.find({
-      state: { $regex: stateName, $options: 'i' }
-    }).limit(10);  // Limit to 10 results
-
-    // Log the data before responding
-    console.log("State data fetched:", stateData);
-
+    // Check if the database has any state data
     if (stateData.length === 0) {
-      return res.status(404).json({ message: 'No states found matching the search criteria' });
+      return res.status(404).json({ message: 'No state data found' });
     }
 
-    res.json(stateData);  // Respond with states and districts data
+    // Respond with the fetched data
+    res.status(200).json({ success: true, data: stateData });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'An error occurred while fetching state data' });
+    // Log the error and respond with an appropriate message
+    console.error('Error fetching state data:', error);
+    res.status(500).json({
+      message: 'An error occurred while fetching state data',
+      error: error.message,
+    });
   }
 });
 

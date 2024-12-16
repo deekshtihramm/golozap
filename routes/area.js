@@ -45,6 +45,20 @@ router.post('/state/get', async (req, res) => {
   }
 });
 
+
+// 2. Get all States with full details
+app.get('/state/get3', async (req, res) => {
+  try {
+    // Retrieve all states including nested data
+    const states = await State.find().lean(); // lean() for faster response
+    res.json(states);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+
 router.post('/state/get2', async (req, res) => {
   try {
     const { searchName } = req.body; // Dynamic search query from client

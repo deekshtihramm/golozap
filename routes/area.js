@@ -47,6 +47,69 @@ router.post('/state/get', async (req, res) => {
 
 
 
+/* ----------------------------------------------------------
+   9. POST API: Retrieve Specific Data
+----------------------------------------------------------- */
+router.post('/state/specific-data', async (req, res) => {
+  try {
+    const { stateName, districtName, subDistrictName, level } = req.body;
+
+    // Input Validation
+    if (!stateName || !level) {
+      return res.status(400).json({ message: 'State name and data level are required' });
+    }
+
+    let query = { state: stateName };
+    let projection = {};
+
+    // Adjust query and projection based on the level
+    if (level === 'districts') {
+      projection = { 'districts.district': 1 };
+    } else if (level === 'subDistricts' && districtName) {
+      query['districts.district'] = districtName;
+      projection = { 'districts.$': 1 }; // Positional projection
+    } else if (level === 'villages' && districtName && subDistrictName) {
+      query['districts.district'] = districtName;
+      query['districts.subDistricts.subDistrict'] = subDistrictName;
+      projection = { 'districts.$': 1 };
+    } else {
+      return res.status(400).json({ message: 'Invalid level or missing input fields' });
+    }
+
+    // Perform the query
+    const stateData = await State.findOne(query, projection);
+
+    if (!stateData) {
+      return res.status(404).json({ message: 'Data not found' });
+    }
+
+    let result = {};
+
+    // Extract the specific data based on level
+    if (level === 'districts') {
+      result = stateData.districts.map((d) => d.district);
+    } else if (level === 'subDistricts') {
+      const district = stateData.districts[0];
+      result = district.subDistricts.map((sd) => sd.subDistrict);
+    } else if (level === 'villages') {
+      const district = stateData.districts[0];
+      const subDistrict = district.subDistricts.find(
+        (sd) => sd.subDistrict === subDistrictName
+      );
+      result = subDistrict ? subDistrict.villages : [];
+    }
+
+    // Respond with the extracted data
+    res.status(200).json({ data: result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while fetching specific data' });
+  }
+});
+
+
+
+
 // GET API to retrieve only state names
 router.get('/state/names', async (req, res) => {
   try {

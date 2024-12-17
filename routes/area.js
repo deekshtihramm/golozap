@@ -46,6 +46,68 @@ router.post('/state/get', async (req, res) => {
 });
 
 
+router.get('/location/data', async (req, res) => {
+  try {
+    const { query } = req.query; // Retrieve the search query from query parameters
+
+    // Input validation
+    if (!query) {
+      return res.status(400).json({ message: 'Please provide a search query.' });
+    }
+
+    // Search for any matching state, district, sub-district, or village
+    const results = await State.find({
+      $or: [
+        { state: { $regex: query, $options: 'i' } }, // Search state name (case-insensitive)
+        { 'districts.district': { $regex: query, $options: 'i' } }, // Search district name
+        { 'districts.subDistricts.subDistrict': { $regex: query, $options: 'i' } }, // Search sub-district name
+        { 'districts.subDistricts.villages': { $regex: query, $options: 'i' } }, // Search village name
+      ],
+    });
+
+    // If no data found, return a 404 response
+    if (!results || results.length === 0) {
+      return res.status(404).json({ message: 'No data found for the given query.' });
+    }
+
+    // Structure the results for response
+    const structuredResults = results.map((state) => {
+      const districts = state.districts.filter((district) =>
+        district.district.toLowerCase().includes(query.toLowerCase()) ||
+        district.subDistricts.some((subDistrict) =>
+          subDistrict.subDistrict.toLowerCase().includes(query.toLowerCase()) ||
+          subDistrict.villages.some((village) => village.toLowerCase().includes(query.toLowerCase()))
+        )
+      );
+
+      return {
+        state: state.state,
+        districts: districts.map((district) => ({
+          district: district.district,
+          subDistricts: district.subDistricts
+            .filter(
+              (subDistrict) =>
+                subDistrict.subDistrict.toLowerCase().includes(query.toLowerCase()) ||
+                subDistrict.villages.some((village) => village.toLowerCase().includes(query.toLowerCase()))
+            )
+            .map((subDistrict) => ({
+              subDistrict: subDistrict.subDistrict,
+              villages: subDistrict.villages.filter((village) =>
+                village.toLowerCase().includes(query.toLowerCase())
+              ),
+            })),
+        })),
+      };
+    });
+
+    // Respond with the filtered data
+    res.status(200).json(structuredResults);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while fetching location data.' });
+  }
+});
+
 
 /* ----------------------------------------------------------
    9. POST API: Retrieve Specific Data

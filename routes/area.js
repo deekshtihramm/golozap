@@ -45,74 +45,17 @@ router.post('/state/get', async (req, res) => {
   }
 });
 
-
-// 2. Get all States with full details
-app.get('/state/get3', async (req, res) => {
+// GET API to retrieve all states data
+router.get('/state/allStatesData', async (req, res) => {
   try {
-    // Retrieve all states including nested data
-    const states = await State.find().lean(); // lean() for faster response
-    res.json(states);
+    // Retrieve all states with their districts, sub-districts, and villages
+    const allStatesData = await State.find({});
+
+    // Respond with the complete states data
+    res.json(allStatesData);
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-
-
-router.post('/state/get2', async (req, res) => {
-  try {
-    const { searchName } = req.body; // Dynamic search query from client
-
-    if (!searchName || typeof searchName !== 'string' || searchName.trim().length === 0) {
-      return res.status(400).json({ message: 'Invalid or missing search input' });
-    }
-
-    const regex = new RegExp(searchName, 'i'); // Case-insensitive search
-
-    // Query to match state, district, sub-district, or village
-    const states = await State.find({
-      $or: [
-        { state: regex }, // Match state name
-        { 'districts.district': regex }, // Match district name
-        { 'districts.subDistricts.subDistrict': regex }, // Match sub-district name
-        { 'districts.subDistricts.villages': regex }, // Match village name
-      ],
-    });
-
-    if (states.length === 0) {
-      return res.status(404).json({ message: 'No matching data found' });
-    }
-
-    // Filter results to include only matching data
-    const filteredResults = states.map(state => {
-      const matchingDistricts = state.districts.filter(district => {
-        const districtMatch = regex.test(district.district);
-        const matchingSubDistricts = district.subDistricts.filter(subDistrict => {
-          const subDistrictMatch = regex.test(subDistrict.subDistrict);
-          const matchingVillages = subDistrict.villages.filter(village => regex.test(village));
-          if (matchingVillages.length > 0 || subDistrictMatch) {
-            subDistrict.villages = matchingVillages; // Keep only matching villages
-            return true;
-          }
-          return false;
-        });
-        if (matchingSubDistricts.length > 0 || districtMatch) {
-          district.subDistricts = matchingSubDistricts; // Keep only matching sub-districts
-          return true;
-        }
-        return false;
-      });
-      if (matchingDistricts.length > 0 || regex.test(state.state)) {
-        state.districts = matchingDistricts; // Keep only matching districts
-        return state;
-      }
-      return null;
-    }).filter(result => result !== null); // Remove null entries
-
-    res.json(filteredResults); // Return filtered results
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    res.status(500).json({ message: 'An error occurred while fetching data' });
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while fetching all states data' });
   }
 });
 

@@ -45,19 +45,6 @@ router.post('/state/get', async (req, res) => {
   }
 });
 
-// GET API to retrieve all states data
-router.get('/state/allStatesData', async (req, res) => {
-  try {
-    // Retrieve all states with their districts, sub-districts, and villages
-    const allStatesData = await State.find({});
-
-    // Respond with the complete states data
-    res.json(allStatesData);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'An error occurred while fetching all states data' });
-  }
-});
 
 
 // GET API to retrieve only state names

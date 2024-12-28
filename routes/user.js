@@ -183,6 +183,7 @@ router.put('/businessverification', async (req, res) => {
             { personalEmail: personalEmail },
             {
                 $set: {
+                    servicename: servicename,
                     businessPhoneNumbers: businessPhoneNumbers,
                     businessEmails: businessEmails,
                     about: about,

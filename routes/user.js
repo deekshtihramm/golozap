@@ -21,11 +21,6 @@ router.post('/create', async (req, res) => {
         serviceAreaPincodes 
     } = req.body;
 
-    // Ensure locationPincode is an array and has at least one value
-    if (!Array.isArray(locationPincode) || locationPincode.length === 0) {
-        return res.status(400).json({ message: 'Pincode is required.' });
-    }
-
     try {
         // Check if a user already exists with this phone number
         const existingUser = await User.findOne({ personalEmail });
@@ -131,6 +126,42 @@ router.post('/search', async (req, res) => {
     }
 });
 
+
+router.put('/businessverification', async (req, res) => {
+    const { personalEmail, servicename, businessPhoneNumbers, businessEmails, about, address, locationPincode } = req.body;
+    
+  
+    if (!personalEmail || !servicename || !businessPhoneNumbers || !businessEmails || !about || !address || !locationPincode) {
+        return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+
+    try {
+        const user = await User.findOneAndUpdate(
+            { personalEmail: personalEmail },
+            {
+                $set: {
+                    businessPhoneNumbers: businessPhoneNumbers,
+                    businessEmails: businessEmails,
+                    about: about,
+                    address: address,
+                    locationPincode: locationPincode,
+                    businessAccountStatus: true
+                }
+            },
+            { new: true}
+        );
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'Business details updated successfully', user });
+    } catch (error) {
+
+        res.status(500).json({ message: 'Error updating business details', error });
+    }
+
+});
 
 
 // PUT to update serviceAreaPincodes for a user using personalEmail number
@@ -607,25 +638,6 @@ router.put('/update/about', async (req, res) => {
 
         // Return the updated user
         res.status(200).json(updatedUser);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
-    }
-});
-
-// GET all users
-router.get('/getAll', async (req, res) => {
-    try {
-        // Retrieve all users from the database
-        const users = await User.find();
-
-        // If no users found, return a 404 error
-        if (users.length === 0) {
-            return res.status(404).json({ message: 'No users found.' });
-        }
-
-        // Return the list of users
-        res.status(200).json(users);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });

@@ -3,6 +3,8 @@ require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose'); // Import mongoose
+const cors = require('cors');
+
 
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI;
@@ -13,6 +15,8 @@ mongoose.connect(mongoURI)
 // Initialize Express
 const app = express();
 const port = 3000; // Port for the server
+
+app.use(cors());
 
 // Middleware to parse JSON with increased limit
 app.use(express.json({ limit: '10mb' })); // Adjust the limit as needed
@@ -28,5 +32,5 @@ app.use('/api', areaRoutes);
 
 // Start the server
 app.listen(port, async () => {
-  console.log(`Server running at https://golozap.ap-southeast-2.elasticbeanstalk.com`);
+  console.log(`Server running at http://localhost:${port}/`);
 });

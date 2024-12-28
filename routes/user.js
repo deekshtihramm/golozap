@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const User = require('../model/User'); // Ensure this path is correct
 
 const router = express.Router();
@@ -8,50 +9,58 @@ router.post('/create', async (req, res) => {
     const { 
         servicename, 
         phone, 
-        ownername, 
-        serviceUrl, 
+        ownername,
         personalEmail,
         about, 
         address, 
         rating, 
         reviewsCount, 
-        serviceTypes, 
-        locationPincode, 
+        serviceTypes,
         reviews, 
-        serviceAreaPincodes 
+        serviceAreaPincodes,
+        password, // Accept plain password from the request body
+        businesslocation 
     } = req.body;
 
     try {
-        // Check if a user already exists with this phone number
+        // Check if a user already exists with this email
         const existingUser = await User.findOne({ personalEmail });
-        
         if (existingUser) {
-            return res.status(409).json({ message: 'Account already created with this phone number.' });
+            return res.status(409).json({ message: 'An account with this email already exists.' });
         }
 
-        // Import nanoid to generate unique IDs
-        const { nanoid } = await import('nanoid');
-        const uniqueId = nanoid(20); // Generate a unique 20-character string
+        // Validate Password
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+        }
 
+        // Generate a unique ID
+        const { nanoid } = await import('nanoid');
+        const uniqueId = nanoid(20);
+
+        // Create a new user object
         const newUser = new User({
             uniqueId,
             servicename,
             phone,
             ownername,
-            serviceUrl,
             personalEmail,
             about,
             address,
             rating,
             reviewsCount,
             serviceTypes,
-            locationPincode, // Store the array of pincodes
-            serviceAreaPincodes, // Add service area pincodes from request
-            reviews // Accept reviews from the request body
+            serviceAreaPincodes,
+            businesslocation, 
+            reviews,
+            password // Store the plain text password
         });
 
         // Save the user to the database
         const savedUser = await newUser.save();
+
+        // Remove sensitive fields like password from the response
+        // const { password, ...userWithoutPassword } = savedUser.toObject();
         res.status(201).json(savedUser);
 
     } catch (err) {
@@ -59,6 +68,40 @@ router.post('/create', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
+
+// POST to login
+router.post('/login', async (req, res) => {
+    const { personalEmail, password } = req.body;
+
+    try {
+        // Validate input
+        if (!personalEmail || !password) {
+            return res.status(400).json({ message: 'Email and password are required.' });
+        }
+
+        // Check if the user exists
+        const user = await User.findOne({ personalEmail });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Compare the provided password with the stored password
+        if (password !== user.password) {
+            return res.status(401).json({ message: 'Invalid credentials.' });
+        }
+
+        // Remove sensitive fields from the response
+        const { password: _, ...userWithoutPassword } = user.toObject();
+
+        // Respond with user details
+        res.status(200).json(userWithoutPassword);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 
 // GET users by serviceTypes and serviceAreaPincodes
 router.post('/search', async (req, res) => {
@@ -163,7 +206,6 @@ router.put('/businessverification', async (req, res) => {
 
 });
 
-
 // PUT to update serviceAreaPincodes for a user using personalEmail number
 router.put('/update/pincodes', async (req, res) => {
     const { personalEmail, serviceAreaPincodes } = req.body; // Use personalEmail from the request body
@@ -195,6 +237,7 @@ router.put('/update/pincodes', async (req, res) => {
     }
 });
 
+
 // Update servicename
 router.put('/update/servicename', async (req, res) => {
     const { personalEmail, servicename } = req.body;
@@ -220,6 +263,36 @@ router.put('/update/servicename', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
+router.put('/update/businessaddress', async (req, res) => {
+    const { personalEmail, businesslocation } = req.body;
+
+    // Validate the required fields
+    if (!personalEmail || !businesslocation || !businesslocation.Latitude || !businesslocation.Longitude) {
+        return res.status(400).json({ message: 'personalEmail and businesslocation with Latitude and Longitude must be provided.' });
+    }
+
+    try {
+        // Find the user by personalEmail and update the businesslocation
+        const updatedUser = await User.findOneAndUpdate(
+            { personalEmail },
+            { businesslocation }, // Update the business location
+            { new: true } // Return the updated document
+        );
+
+        // If no user was found
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Return the updated user object
+        res.status(200).json(updatedUser);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 
 // Update ownername
 router.put('/update/ownername', async (req, res) => {
@@ -408,31 +481,31 @@ router.put('/update/serviceTypes', async (req, res) => {
     }
 });
 
-// Update locationPincode
-router.put('/update/locationPincode', async (req, res) => {
-    const { personalEmail, locationPincode } = req.body;
+// // Update locationPincode
+// router.put('/update/locationPincode', async (req, res) => {
+//     const { personalEmail, locationPincode } = req.body;
 
-    if (!personalEmail || !Array.isArray(locationPincode)) {
-        return res.status(400).json({ message: 'personalEmail and locationPincode array must be provided.' });
-    }
+//     if (!personalEmail || !Array.isArray(locationPincode)) {
+//         return res.status(400).json({ message: 'personalEmail and locationPincode array must be provided.' });
+//     }
 
-    try {
-        const updatedUser = await User.findOneAndUpdate(
-            { personalEmail },
-            { locationPincode },
-            { new: true }
-        );
+//     try {
+//         const updatedUser = await User.findOneAndUpdate(
+//             { personalEmail },
+//             { locationPincode },
+//             { new: true }
+//         );
 
-        if (!updatedUser) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
 
-        res.status(200).json(updatedUser);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
-    }
-});
+//         res.status(200).json(updatedUser);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server Error' });
+//     }
+// });
 
 
 // PUT to add a new review, increment reviewsCount, and update average rating
@@ -476,6 +549,34 @@ router.put('/update/reviews', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
+// POST to fetch all reviews for a user by their email (uses body instead of query params)
+router.post('/getReviewsByUser', async (req, res) => {
+    const { personalEmail } = req.body; // Email provided in the body
+
+    // Validate the request body
+    if (!personalEmail) {
+        return res.status(400).json({ message: 'personalEmail is required.' });
+    }
+
+    try {
+        // Find the user by email
+        const user = await User.findOne({ personalEmail }, { reviews: 1, _id: 0 }); // Fetch only reviews field
+
+        // Check if user exists
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Return the user's reviews
+        res.status(200).json({ reviews: user.reviews });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 
 // GET user by phone number
 router.post('/getBypersonalEmail', async (req, res) => {

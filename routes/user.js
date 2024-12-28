@@ -171,10 +171,10 @@ router.post('/search', async (req, res) => {
 
 
 router.put('/businessverification', async (req, res) => {
-    const { personalEmail, servicename, businessPhoneNumbers, businessEmails, about, address, locationPincode } = req.body;
+    const { personalEmail, servicename, businessPhoneNumbers, businessEmails, about, address, businesslocation } = req.body;
     
   
-    if (!personalEmail || !servicename || !businessPhoneNumbers || !businessEmails || !about || !address || !locationPincode) {
+    if (!personalEmail || !servicename || !businessPhoneNumbers || !businessEmails || !about || !address || !businesslocation) {
         return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
@@ -188,7 +188,7 @@ router.put('/businessverification', async (req, res) => {
                     businessEmails: businessEmails,
                     about: about,
                     address: address,
-                    locationPincode: locationPincode,
+                    businesslocation: businesslocation,
                     businessAccountStatus: true
                 }
             },

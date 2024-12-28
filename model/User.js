@@ -6,8 +6,9 @@ const ReviewSchema = new mongoose.Schema({
     rating: { type: Number, required: true, min: 0, max: 5 }, // Rating given by the reviewer (0 to 5)
     comment: { type: String, required: true }, // Review comment
     date: { type: Date, default: Date.now } // Date of the review
-});
+}, { versionKey: false }); // Disable versioning for the sub-schema (optional)
 
+// Define the User Schema
 const UserSchema = new mongoose.Schema(
     {
         uniqueId: { type: String, required: true, unique: true },
@@ -32,22 +33,12 @@ const UserSchema = new mongoose.Schema(
             Latitude: { type: Number }, // Latitude
             Longitude: { type: Number } // Longitude
         },
-
-        // Version control fields
-        version: { type: Number, default: 1 }, // Incremented manually on updates
     },
     {
-        timestamps: true // Automatically adds createdAt and updatedAt fields
+        timestamps: true, // Automatically adds createdAt and updatedAt fields
+        versionKey: '__v' // Adds version key (default: `__v`)
     }
 );
-
-// Middleware to increment version on updates
-UserSchema.pre('save', function (next) {
-    if (!this.isNew) {
-        this.version += 1; // Increment version only if the document is being updated
-    }
-    next();
-});
 
 // Export the User model
 module.exports = mongoose.model('User', UserSchema);

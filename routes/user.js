@@ -174,7 +174,7 @@ router.put('/businessverification', async (req, res) => {
     const { personalEmail, servicename, businessPhoneNumbers, businessEmails, about, address, businesslocation } = req.body;
     
   
-    if (!personalEmail || !servicename || !businessPhoneNumbers || !businessEmails || !about || !address || !businesslocation) {
+    if (!personalEmail || !servicename || !businessPhoneNumbers || !businessEmails || !about || !address) {
         return res.status(400).json({ message: 'Please provide all required fields' });
     }
 

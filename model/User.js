@@ -29,10 +29,7 @@ const UserSchema = new mongoose.Schema(
         serviceAreaPincodes: { type: [String] }, // Array of pincodes representing the service area
         reviews: [ReviewSchema], // Array of reviews
         password: { type: String }, // Plain text password (NOT SECURE)
-        businesslocation: { 
-            Latitude: { type: Number }, // Latitude
-            Longitude: { type: Number } // Longitude
-        },
+        businesslocation: { type: String }, // Added business location
     },
     {
         timestamps: true, // Automatically adds createdAt and updatedAt fields

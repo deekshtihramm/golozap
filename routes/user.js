@@ -269,7 +269,7 @@ router.put('/update/businessaddress', async (req, res) => {
     const { personalEmail, businesslocation } = req.body;
 
     // Validate the required fields
-    if (!personalEmail || !businesslocation || !businesslocation.Latitude || !businesslocation.Longitude) {
+    if (!personalEmail || !businesslocation) {
         return res.status(400).json({ message: 'personalEmail and businesslocation with Latitude and Longitude must be provided.' });
     }
 

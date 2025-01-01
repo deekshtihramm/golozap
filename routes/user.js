@@ -561,39 +561,36 @@ router.put('/update/serviceTypes', async (req, res) => {
 
 // PUT to add a new review, increment reviewsCount, and update average rating
 router.put('/update/reviews', async (req, res) => {
-    const { personalEmail, reviewerName, rating, comment } = req.body; // Single new review
+    const { personalEmail, uniqueId, reviewerName, rating, comment } = req.body; // Single new review
 
     // Validate required fields
-    if (!personalEmail || !reviewerName || typeof rating !== 'number' || !comment) {
-        return res.status(400).json({ message: 'personalEmail, reviewerName, rating, and comment are required.' });
+    if ((!personalEmail && !uniqueId) || !reviewerName || typeof rating !== 'number' || !comment) {
+        return res.status(400).json({ message: 'personalEmail or uniqueId, reviewerName, rating, and comment are required.' });
     }
 
     try {
-        // Find the user and add the new review
-        const updatedUser = await User.findOneAndUpdate(
-            { personalEmail },
-            { 
-                $push: { reviews: { reviewerName, rating, comment } },  // Add new review
-                $inc: { reviewsCount: 1 }  // Increment reviewsCount by 1
-            },
-            { new: true } // Return the updated document
-        );
+        // Find the user using either personalEmail or uniqueId
+        const query = personalEmail ? { personalEmail } : { uniqueId };
+        const user = await User.findOne(query);
 
         // Check if user was found
-        if (!updatedUser) {
+        if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Calculate the new average rating
-        const totalRatings = updatedUser.reviews.reduce((sum, review) => sum + review.rating, 0);
-        const averageRating = totalRatings / updatedUser.reviews.length;
+        // Add the new review and increment reviewsCount
+        user.reviews.push({ reviewerName, rating, comment });
+        user.reviewsCount += 1;
 
-        // Update the rating field with the new average
-        updatedUser.rating = averageRating;
-        await updatedUser.save(); // Save the updated rating
+        // Calculate the new average rating
+        const totalRatings = user.reviews.reduce((sum, review) => sum + review.rating, 0);
+        user.rating = totalRatings / user.reviews.length;
+
+        // Save the updated user
+        await user.save();
 
         // Return the updated user with new average rating
-        res.status(200).json(updatedUser);
+        res.status(200).json(user);
 
     } catch (err) {
         console.error(err);

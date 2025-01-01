@@ -70,7 +70,7 @@ router.post('/create', async (req, res) => {
 });
 
 
-// POST to create a new service without personalEmail
+// POST to create a new service with personalEmail as uniqueId
 router.post('/demoservicecreate', async (req, res) => {
     const { 
         servicename, 
@@ -94,6 +94,7 @@ router.post('/demoservicecreate', async (req, res) => {
         // Create a new service object
         const newService = new User({
             uniqueId,
+            personalEmail: uniqueId, // Store uniqueId in personalEmail
             servicename,
             phone,
             ownername,
@@ -110,7 +111,7 @@ router.post('/demoservicecreate', async (req, res) => {
         // Save the service to the database
         const savedService = await newService.save();
 
-        // Remove sensitive fields like password from the response
+        // Return the saved service
         res.status(201).json(savedService);
 
     } catch (err) {
@@ -118,6 +119,7 @@ router.post('/demoservicecreate', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
 
 
 // POST to login

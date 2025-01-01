@@ -70,7 +70,6 @@ router.post('/create', async (req, res) => {
 });
 
 
-// POST to create a new service with personalEmail as uniqueId
 router.post('/demoservicecreate', async (req, res) => {
     const { 
         servicename, 
@@ -80,10 +79,14 @@ router.post('/demoservicecreate', async (req, res) => {
         address, 
         rating, 
         reviewsCount, 
-        serviceTypes,
+        serviceTypes,        // Array of service types
         reviews, 
-        serviceAreaPincodes,
-        businesslocation 
+        serviceAreaPincodes, // Array of pincodes for service area
+        businesslocation,    // Business location
+        businessAccountStatus, // Account status (e.g. 'active', 'inactive')
+        businessPhoneNumbers, // Array of business phone numbers
+        businessEmails,      // Array of business emails
+        businessName         // Name of the business
     } = req.body;
 
     try {
@@ -91,7 +94,7 @@ router.post('/demoservicecreate', async (req, res) => {
         const { nanoid } = await import('nanoid');
         const uniqueId = nanoid(20);
 
-        // Create a new service object
+        // Create a new service object with the added fields
         const newService = new User({
             uniqueId,
             personalEmail: uniqueId, // Store uniqueId in personalEmail
@@ -102,10 +105,14 @@ router.post('/demoservicecreate', async (req, res) => {
             address,
             rating,
             reviewsCount,
-            serviceTypes,
-            serviceAreaPincodes,
-            businesslocation, 
-            reviews
+            serviceTypes,           // Storing the service types
+            serviceAreaPincodes,    // Storing service area pincodes
+            businesslocation,       // Storing business location
+            reviews,
+            businessAccountStatus, // Storing business account status
+            businessPhoneNumbers,  // Storing business phone numbers
+            businessEmails,        // Storing business emails
+            businessName           // Storing business name
         });
 
         // Save the service to the database
@@ -119,7 +126,6 @@ router.post('/demoservicecreate', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
-
 
 
 // POST to login

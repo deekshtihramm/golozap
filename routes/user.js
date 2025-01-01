@@ -70,6 +70,56 @@ router.post('/create', async (req, res) => {
 });
 
 
+// POST to create a new service without personalEmail
+router.post('/demoservicecreate', async (req, res) => {
+    const { 
+        servicename, 
+        phone, 
+        ownername,
+        about, 
+        address, 
+        rating, 
+        reviewsCount, 
+        serviceTypes,
+        reviews, 
+        serviceAreaPincodes,
+        businesslocation 
+    } = req.body;
+
+    try {
+        // Generate a unique ID
+        const { nanoid } = await import('nanoid');
+        const uniqueId = nanoid(20);
+
+        // Create a new service object
+        const newService = new User({
+            uniqueId,
+            servicename,
+            phone,
+            ownername,
+            about,
+            address,
+            rating,
+            reviewsCount,
+            serviceTypes,
+            serviceAreaPincodes,
+            businesslocation, 
+            reviews
+        });
+
+        // Save the service to the database
+        const savedService = await newService.save();
+
+        // Remove sensitive fields like password from the response
+        res.status(201).json(savedService);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+
 // POST to login
 router.post('/login', async (req, res) => {
     const { personalEmail, password } = req.body;

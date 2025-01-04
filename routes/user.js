@@ -605,10 +605,9 @@ router.put('/update/reviews', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
-
-// POST to fetch all reviews for a user by their email (uses body instead of query params)
+// POST to fetch reviews for a user with pagination
 router.post('/getReviewsByUser', async (req, res) => {
-    const { personalEmail } = req.body; // Email provided in the body
+    const { personalEmail, offset = 0, limit = 10 } = req.body; // Email, offset, and limit from the body
 
     // Validate the request body
     if (!personalEmail) {
@@ -624,8 +623,16 @@ router.post('/getReviewsByUser', async (req, res) => {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        // Return the user's reviews
-        res.status(200).json({ reviews: user.reviews });
+        // Extract reviews and apply pagination
+        const totalReviews = user.reviews.length; // Total number of reviews
+        const paginatedReviews = user.reviews.slice(offset, offset + limit); // Get reviews based on offset and limit
+
+        // Return paginated reviews and total count
+        res.status(200).json({
+            reviews: paginatedReviews,
+            total: totalReviews,
+            hasMore: offset + limit < totalReviews, // Whether there are more reviews to load
+        });
 
     } catch (err) {
         console.error(err);

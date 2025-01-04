@@ -29,7 +29,22 @@ const UserSchema = new mongoose.Schema(
         serviceAreaPincodes: { type: [String] }, // Array of pincodes representing the service area
         reviews: [ReviewSchema], // Array of reviews
         password: { type: String }, // Plain text password (NOT SECURE)
-        businesslocation: { type: String } // Added business location
+        businesslocation: { type: String }, // Added business location
+        item1: { type: String }, // Added item1
+        item2: { type: String }, // Added item2
+        item3: { type: String }, // Added item3
+        item4: { type: String }, // Added item4
+        item5: { type: String }, // Added item5
+        item6: { type: String }, // Added item6
+        item7: { type: String }, // Added item7
+        item8: { type: String }, // Added item8
+        item9: { type: String }, // Added item9
+        item10: { type: String }, // Added item10
+        item11: { type: String }, // Added item11
+        item12: { type: String }, // Added item12
+        item13: { type: String }, // Added item13
+        item14: { type: String }, // Added item14
+        item15: { type: String }, // Added item15
     },
     {
         timestamps: true, // Automatically adds createdAt and updatedAt fields

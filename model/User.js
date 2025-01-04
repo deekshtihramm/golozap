@@ -2,11 +2,19 @@ const mongoose = require('mongoose');
 
 // Define the Review sub-schema
 const ReviewSchema = new mongoose.Schema({
-    reviewerName: { type: String, required: true }, // Name of the reviewer
-    rating: { type: Number, required: true, min: 0, max: 5 }, // Rating given by the reviewer (0 to 5)
-    comment: { type: String, required: true }, // Review comment
-    date: { type: Date, default: Date.now } // Date of the review
-}, { versionKey: false }); // Disable versioning for the sub-schema (optional)
+    reviewerName: { type: String, required: true },
+    rating: { type: Number, required: true, min: 0, max: 5 },
+    comment: { type: String, required: true },
+    date: { type: Date, default: Date.now }
+}, { versionKey: false });
+
+// Define the News sub-schema
+const NewsSchema = new mongoose.Schema({
+    title: { type: String, required: true }, // News title
+    subtitle: { type: String }, // Optional news subtitle
+    content: { type: String, required: true }, // Main news content
+    date: { type: Date, default: Date.now } // Date the news was created
+}, { versionKey: false }); // Disable versioning for the sub-schema
 
 // Define the User Schema
 const UserSchema = new mongoose.Schema(
@@ -15,40 +23,41 @@ const UserSchema = new mongoose.Schema(
         servicename: { type: String },
         phone: { type: String },
         ownername: { type: String, default: "GoloZap" },
-        personalEmail: { type: String, unique: true}, // Nullable and allows multiple nulls
+        personalEmail: { type: String, unique: true },
         serviceUrl: { type: String },
         about: { type: String },
         address: { type: String },
-        businessName: { type: String }, // Added business name
-        businessEmails: { type: [String] }, // Array of business emails
-        businessPhoneNumbers: { type: [String] }, // Array of business phone numbers
-        businessAccountStatus: { type: Boolean, default: false }, // Account status as true or false
-        rating: { type: Number, default: 0, min: 0, max: 5 }, // Average rating (between 0 and 5)
-        reviewsCount: { type: Number, default: 0 }, // Total number of reviews
-        serviceTypes: { type: [String] }, // Array of service types (e.g., ['Plumbing', 'Electrical'])
-        serviceAreaPincodes: { type: [String] }, // Array of pincodes representing the service area
-        reviews: [ReviewSchema], // Array of reviews
-        password: { type: String }, // Plain text password (NOT SECURE)
-        businesslocation: { type: String }, // Added business location
-        item1: { type: String }, // Added item1
-        item2: { type: String }, // Added item2
-        item3: { type: String }, // Added item3
-        item4: { type: String }, // Added item4
-        item5: { type: String }, // Added item5
-        item6: { type: String }, // Added item6
-        item7: { type: String }, // Added item7
-        item8: { type: String }, // Added item8
-        item9: { type: String }, // Added item9
-        item10: { type: String }, // Added item10
-        item11: { type: String }, // Added item11
-        item12: { type: String }, // Added item12
-        item13: { type: String }, // Added item13
-        item14: { type: String }, // Added item14
-        item15: { type: String }, // Added item15
+        businessName: { type: String },
+        businessEmails: { type: [String] },
+        businessPhoneNumbers: { type: [String] },
+        businessAccountStatus: { type: Boolean, default: false },
+        rating: { type: Number, default: 0, min: 0, max: 5 },
+        reviewsCount: { type: Number, default: 0 },
+        serviceTypes: { type: [String] },
+        serviceAreaPincodes: { type: [String] },
+        reviews: [ReviewSchema],
+        password: { type: String },
+        businesslocation: { type: String },
+        news: [NewsSchema], // Array of news items
+        item1: { type: String },
+        item2: { type: String },
+        item3: { type: String },
+        item4: { type: String },
+        item5: { type: String },
+        item6: { type: String },
+        item7: { type: String },
+        item8: { type: String },
+        item9: { type: String },
+        item10: { type: String },
+        item11: { type: String },
+        item12: { type: String },
+        item13: { type: String },
+        item14: { type: String },
+        item15: { type: String }
     },
     {
-        timestamps: true, // Automatically adds createdAt and updatedAt fields
-        versionKey: '__v' // Adds version key (default: `__v`)
+        timestamps: true,
+        versionKey: '__v'
     }
 );
 

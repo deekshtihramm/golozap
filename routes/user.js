@@ -927,10 +927,17 @@ router.get('/get/news', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Return the user's news array
+        // Extract only the required fields from the news array
+        const simplifiedNews = user.news.map(news => ({
+            newsuniqueId: news.newsuniqueId,
+            title: news.title,
+            subtitle: news.subtitle,
+        }));
+
+        // Return the simplified news array
         res.status(200).json({
             message: 'News items fetched successfully',
-            news: user.news
+            news: simplifiedNews
         });
 
     } catch (err) {

@@ -540,32 +540,6 @@ router.put('/update/serviceTypes', async (req, res) => {
     }
 });
 
-// // Update locationPincode
-// router.put('/update/locationPincode', async (req, res) => {
-//     const { personalEmail, locationPincode } = req.body;
-
-//     if (!personalEmail || !Array.isArray(locationPincode)) {
-//         return res.status(400).json({ message: 'personalEmail and locationPincode array must be provided.' });
-//     }
-
-//     try {
-//         const updatedUser = await User.findOneAndUpdate(
-//             { personalEmail },
-//             { locationPincode },
-//             { new: true }
-//         );
-
-//         if (!updatedUser) {
-//             return res.status(404).json({ message: 'User not found' });
-//         }
-
-//         res.status(200).json(updatedUser);
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ message: 'Server Error' });
-//     }
-// });
-
 
 // PUT to add a new review, increment reviewsCount, and update average rating
 router.put('/update/reviews', async (req, res) => {
@@ -605,6 +579,7 @@ router.put('/update/reviews', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
 // POST to fetch reviews for a user with pagination
 router.post('/getReviewsByUser', async (req, res) => {
     const { personalEmail, offset = 0, limit = 10 } = req.body; // Email, offset, and limit from the body
@@ -802,6 +777,127 @@ router.put('/update/about', async (req, res) => {
 
         // Return the updated user
         res.status(200).json(updatedUser);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+    
+});
+
+    // POST to add a new news item
+router.post('/add/news', async (req, res) => {
+    const { personalEmail, uniqueId, title, subtitle, content } = req.body; // New news details
+
+    // Validate required fields
+    if ((!personalEmail && !uniqueId) || !title || !content) {
+        return res.status(400).json({ message: 'personalEmail or uniqueId, title, and content are required.' });
+    }
+
+    try {
+        // Find the user using either personalEmail or uniqueId
+        const query = personalEmail ? { personalEmail } : { uniqueId };
+        const user = await User.findOne(query);
+
+        // Check if user was found
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+         // Generate a unique ID
+         const { nanoid } = await import('nanoid');
+         const newsuniqueId = nanoid(20);
+
+        // Add the new news item
+        const newNews = { newsuniqueId, title, subtitle, content };
+        user.news.push(newNews);
+
+        // Save the updated user
+        await user.save();
+
+        // Return the updated user with the new news item
+        res.status(200).json(user);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// DELETE to remove a news item
+router.delete('/delete/news', async (req, res) => {
+    const { personalEmail, uniqueId, newsuniqueId } = req.body;
+
+    // Validate required fields
+    if ((!personalEmail && !uniqueId) || !newsuniqueId) {
+        return res.status(400).json({ message: 'personalEmail or uniqueId, and newsuniqueId are required.' });
+    }
+
+    try {
+        // Find the user using either personalEmail or uniqueId
+        const query = personalEmail ? { personalEmail } : { uniqueId };
+        const user = await User.findOne(query);
+
+        // Check if user was found
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Find the index of the news item to delete
+        const newsIndex = user.news.findIndex(news => news.newsuniqueId === newsuniqueId);
+        if (newsIndex === -1) {
+            return res.status(404).json({ message: 'News item not found' });
+        }
+
+        // Remove the news item
+        user.news.splice(newsIndex, 1);
+
+        // Save the updated user
+        await user.save();
+
+        res.status(200).json({ message: 'News item deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// PUT to edit a news item
+router.put('/edit/news', async (req, res) => {
+    const { personalEmail, uniqueId, newsuniqueId, title, subtitle, content } = req.body;
+
+    // Validate required fields
+    if ((!personalEmail && !uniqueId) || !newsuniqueId || (!title && !subtitle && !content)) {
+        return res.status(400).json({ message: 'personalEmail or uniqueId, newsuniqueId, and at least one field to update (title, subtitle, content) are required.' });
+    }
+
+    try {
+        // Find the user using either personalEmail or uniqueId
+        const query = personalEmail ? { personalEmail } : { uniqueId };
+        const user = await User.findOne(query);
+
+        // Check if user was found
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Find the news item to edit
+        const newsItem = user.news.find(news => news.newsuniqueId === newsuniqueId);
+        if (!newsItem) {
+            return res.status(404).json({ message: 'News item not found' });
+        }
+
+        // Update the fields if they are provided
+        if (title) newsItem.title = title;
+        if (subtitle) newsItem.subtitle = subtitle;
+        if (content) newsItem.content = content;
+
+        // Save the updated user
+        await user.save();
+
+        res.status(200).json({
+            message: 'News item updated successfully',
+            news: newsItem,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });

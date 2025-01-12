@@ -10,6 +10,7 @@ const ReviewSchema = new mongoose.Schema({
 
 // Define the News sub-schema
 const NewsSchema = new mongoose.Schema({
+    newsuniqueId: { type: String, required: true, unique: true },
     title: { type: String, required: true }, // News title
     subtitle: { type: String }, // Optional news subtitle
     content: { type: String, required: true }, // Main news content

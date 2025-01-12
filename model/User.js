@@ -14,7 +14,7 @@ const NewsSchema = new mongoose.Schema({
     subtitle: { type: String }, // Optional news subtitle
     content: { type: String, required: true }, // Main news content
     date: { type: Date, default: Date.now }, // Date the news was created
-    expiryDate: { type: Date, required: true } // Expiry date for the news item
+    expiryDate: { type: Date } // Expiry date for the news item
 }, { versionKey: false }); // Disable versioning for the sub-schema
 
 // Define the User Schema

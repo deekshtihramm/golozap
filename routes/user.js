@@ -906,7 +906,7 @@ router.put('/edit/news', async (req, res) => {
 
 // GET news items for a user
 router.get('/get/news', async (req, res) => {
-    const { personalEmail, uniqueId } = req.query; // Get query parameters
+    const { personalEmail, uniqueId } = req.body; // Get body parameters
 
     // Validate required fields
     if (!personalEmail && !uniqueId) {

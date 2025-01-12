@@ -785,43 +785,47 @@ router.put('/update/about', async (req, res) => {
 });
 
     // POST to add a new news item
-router.post('/add/news', async (req, res) => {
-    const { personalEmail, uniqueId, title, subtitle, content } = req.body; // New news details
-
-    // Validate required fields
-    if ((!personalEmail && !uniqueId) || !title || !content) {
-        return res.status(400).json({ message: 'personalEmail or uniqueId, title, and content are required.' });
-    }
-
-    try {
-        // Find the user using either personalEmail or uniqueId
-        const query = personalEmail ? { personalEmail } : { uniqueId };
-        const user = await User.findOne(query);
-
-        // Check if user was found
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+    router.post('/add/news', async (req, res) => {
+        const { personalEmail, uniqueId, title, subtitle, content } = req.body; // New news details
+    
+        // Validate required fields
+        if ((!personalEmail && !uniqueId) || !title || !content) {
+            return res.status(400).json({ message: 'personalEmail or uniqueId, title, and content are required.' });
         }
-
-         // Generate a unique ID
-         const { nanoid } = await import('nanoid');
-         const newsuniqueId = nanoid(20);
-
-        // Add the new news item
-        const newNews = { newsuniqueId, title, subtitle, content };
-        user.news.push(newNews);
-
-        // Save the updated user
-        await user.save();
-
-        // Return the updated user with the new news item
-        res.status(200).json(user);
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
-    }
-});
+    
+        try {
+            // Find the user using either personalEmail or uniqueId
+            const query = personalEmail ? { personalEmail } : { uniqueId };
+            const user = await User.findOne(query);
+    
+            // Check if user was found
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+    
+            // Generate a unique ID
+            const { nanoid } = await import('nanoid');
+            const newsuniqueId = nanoid(20);
+    
+            // Calculate expiry date (7 days from the current date)
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + 7); // Add 7 days to the current date
+    
+            // Add the new news item with expiryDate
+            const newNews = { newsuniqueId, title, subtitle, content, expiryDate };
+            user.news.push(newNews);
+    
+            // Save the updated user
+            await user.save();
+    
+            // Return the updated user with the new news item
+            res.status(200).json(user);
+    
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Server Error' });
+        }
+    });    
 
 // DELETE to remove a news item
 router.delete('/delete/news', async (req, res) => {

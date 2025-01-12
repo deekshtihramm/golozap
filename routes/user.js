@@ -781,7 +781,7 @@ router.put('/update/about', async (req, res) => {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });
     }
-    
+
 });
 
     // POST to add a new news item
@@ -903,5 +903,37 @@ router.put('/edit/news', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
+// GET news items for a user
+router.get('/get/news', async (req, res) => {
+    const { personalEmail, uniqueId } = req.query; // Get query parameters
+
+    // Validate required fields
+    if (!personalEmail && !uniqueId) {
+        return res.status(400).json({ message: 'personalEmail or uniqueId is required.' });
+    }
+
+    try {
+        // Find the user using either personalEmail or uniqueId
+        const query = personalEmail ? { personalEmail } : { uniqueId };
+        const user = await User.findOne(query);
+
+        // Check if user was found
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Return the user's news array
+        res.status(200).json({
+            message: 'News items fetched successfully',
+            news: user.news
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 
 module.exports = router;

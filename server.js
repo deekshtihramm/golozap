@@ -13,7 +13,7 @@ mongoose.connect(mongoURI)
   .catch((err) => console.error('MongoDB connection error:', err));
 
 // Import User model
-const User = require('./models/User'); // Adjust path as needed
+const User = require('./model/User'); // Adjust path as needed
 
 // Initialize Express
 const app = express();

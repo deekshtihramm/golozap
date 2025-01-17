@@ -54,7 +54,7 @@ const UserSchema = new mongoose.Schema(
         item12: { type: String },
         item13: { type: String },
         item14: { type: String },
-        item15: { type: String }
+        subscriptionId: { type: String }
     },
     {
         timestamps: true,

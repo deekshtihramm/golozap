@@ -43,8 +43,8 @@ router.post('/add_basic_subscription', async (req, res) => {
     }
 
     // Set default values
-    const planId = req.body.planId || 'default_plan_id'; // Replace with your default Plan ID
-    const amount = req.body.amount || 290; // Default amount in paise (e.g., 2.90 INR)
+    const planId = req.body.planId || 'plan_PkToXDZwIDKyWj'; // Replace with your default Plan ID
+    const amount = req.body.amount || 2900; // Default amount in paise (e.g., 29.0 INR)
     const currency = req.body.currency || 'INR'; // Default currency to INR
     const startDate = req.body.startDate || new Date().toISOString(); // Default to current time
 

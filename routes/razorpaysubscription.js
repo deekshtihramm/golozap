@@ -91,4 +91,48 @@ router.post('/add_basic_subscription', async (req, res) => {
   }
 });
 
+// Cancel subscription API with user verification
+router.post('/cancel_basic_subscription', async (req, res) => {
+    try {
+      const { personalEmail, uniqueId, subscriptionId } = req.body;
+  
+      // Validate inputs
+      if (!personalEmail || !uniqueId || !subscriptionId) {
+        return res.status(400).json({ message: 'All required fields (personalEmail, uniqueId, subscriptionId) must be provided' });
+      }
+  
+      // Verify personalEmail and uniqueId in the User collection
+      const user = await User.findOne({ personalEmail, uniqueId });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
+      }
+  
+      // Fetch the subscription from your database to check if it exists
+      const subscription = await RazorpaySubscription.findOne({ subscriptionId });
+      if (!subscription) {
+        return res.status(404).json({ message: 'Subscription not found' });
+      }
+  
+      // Check if the subscription belongs to the verified user (optional, but recommended for security)
+      if (subscription.customerId !== uniqueId) {
+        return res.status(403).json({ message: 'You do not have permission to cancel this subscription' });
+      }
+  
+      // Call Razorpay API to cancel the subscription
+      const razorpayResponse = await razorpay.subscriptions.cancel(subscriptionId);
+  
+      // Update the subscription status in your database
+      subscription.status = 'canceled';
+      await subscription.save();
+  
+      return res.status(200).json({
+        message: 'Subscription canceled successfully!',
+        razorpayResponse,
+      });
+    } catch (error) {
+      console.error('Error canceling subscription:', error);
+      res.status(500).json({ message: 'Failed to cancel subscription', error: error.message });
+    }
+  });
+
 module.exports = router;

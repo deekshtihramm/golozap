@@ -45,14 +45,18 @@ router.post('/add_basic_subscription', async (req, res) => {
     const planId = req.body.planId || 'plan_PkToXDZwIDKyWj'; // Replace with your default Plan ID
     const amount = req.body.amount || 2900; // Default amount in paise (e.g., 29.0 INR)
     const currency = req.body.currency || 'INR'; // Default currency to INR
-    const startDate = new Date().toISOString(); // Default to current time (no need to accept from user)
+
+    // Set startDate to 5 minutes from now (to ensure it's in the future)
+    const startDate = new Date();
+    startDate.setMinutes(startDate.getMinutes() + 5); // Add 5 minutes to current time
+    const startDateISO = startDate.toISOString(); // Convert to ISO string
 
     // Create Razorpay subscription
     const subscriptionOptions = {
       plan_id: planId, // Plan ID from Razorpay
       total_count: total_count || 12, // Default to 12 payments if not provided
       customer_notify: 1, // Notify customer via email/SMS
-      start_at: Math.floor(new Date(startDate).getTime() / 1000), // Convert to UNIX timestamp
+      start_at: Math.floor(new Date(startDateISO).getTime() / 1000), // Convert to UNIX timestamp
       quantity: 1,
     };
 

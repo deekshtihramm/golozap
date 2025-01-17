@@ -13,7 +13,6 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET, // Set in environment variables
 });
 
-
 // Utility function to add one month to a given date
 function addOneMonth(date) {
   const result = new Date(date);
@@ -46,11 +45,7 @@ router.post('/add_basic_subscription', async (req, res) => {
     const planId = req.body.planId || 'plan_PkToXDZwIDKyWj'; // Replace with your default Plan ID
     const amount = req.body.amount || 2900; // Default amount in paise (e.g., 29.0 INR)
     const currency = req.body.currency || 'INR'; // Default currency to INR
-    const startDate = req.body.startDate || new Date().toISOString(); // Default to current time
-
-    // if (isNaN(new Date(startDate).getTime())) {
-    //   return res.status(400).json({ message: 'Invalid startDate provided' });
-    // }
+    const startDate = new Date().toISOString(); // Default to current time (no need to accept from user)
 
     // Create Razorpay subscription
     const subscriptionOptions = {

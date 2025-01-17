@@ -48,9 +48,9 @@ router.post('/add_basic_subscription', async (req, res) => {
     const currency = req.body.currency || 'INR'; // Default currency to INR
     const startDate = req.body.startDate || new Date().toISOString(); // Default to current time
 
-    if (isNaN(new Date(startDate).getTime())) {
-      return res.status(400).json({ message: 'Invalid startDate provided' });
-    }
+    // if (isNaN(new Date(startDate).getTime())) {
+    //   return res.status(400).json({ message: 'Invalid startDate provided' });
+    // }
 
     // Create Razorpay subscription
     const subscriptionOptions = {

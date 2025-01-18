@@ -47,7 +47,7 @@ router.post('/add_basic_subscription', async (req, res) => {
     const currency = req.body.currency || 'INR'; // Default currency to INR
 
     // Set startDate to 5 minutes from now (to ensure it's in the future)
-    const startDate = new Date(); // Current time
+    const startDate = new Date();
     const startDateISO = startDate.toISOString(); // Convert to ISO string
 
     // Create Razorpay subscription
@@ -60,6 +60,11 @@ router.post('/add_basic_subscription', async (req, res) => {
     };
 
     const razorpaySubscription = await razorpay.subscriptions.create(subscriptionOptions);
+
+    // Extract the payment link (if Razorpay provides it)
+    const paymentLink = razorpaySubscription.payment_links && razorpaySubscription.payment_links[0]
+      ? razorpaySubscription.payment_links[0].short_url
+      : null;
 
     // Calculate the next payment date
     const subscriptionStartDate = new Date(razorpaySubscription.start_at * 1000);
@@ -76,6 +81,7 @@ router.post('/add_basic_subscription', async (req, res) => {
       startDate: subscriptionStartDate,
       endDate: new Date(razorpaySubscription.end_at * 1000),
       nextPaymentDate, // Calculated next payment date
+      paymentLink, // Store the payment link
     });
 
     await newSubscription.save();
@@ -83,12 +89,17 @@ router.post('/add_basic_subscription', async (req, res) => {
     return res.status(201).json({
       message: 'Subscription created successfully!',
       subscription: newSubscription,
+      paymentLink: paymentLink, // Return the payment link in the response
     });
   } catch (error) {
     console.error('Error creating subscription:', error);
+    if (error.response) {
+      console.error('Razorpay API error details:', error.response);
+    }
     res.status(500).json({ message: 'Failed to create subscription', error: error.message });
   }
 });
+
 
 // Cancel subscription API with user verification
 router.post('/cancel_basic_subscription', async (req, res) => {
@@ -170,33 +181,6 @@ router.post('/get_subscription_details', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch subscription details', error: error.message });
   }
 });
-
-// Create order API endpoint
-router.post('/create-order', async (req, res) => {
-  try {
-    const { amount } = req.body;  // Get the amount from the client
-
-    // Generate the order on Razorpay
-    const orderOptions = {
-      amount: amount * 100, // Amount in paise
-      currency: 'INR',
-      receipt: 'order_rcptid_11',
-      payment_capture: 1,
-    };
-
-    // Create the order
-    razorpay.orders.create(orderOptions, (err, order) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error creating order', error: err });
-      }
-      // Send the order ID to the client
-      res.json({ orderId: order.id });
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Error processing request', error: error.message });
-  }
-});
-
 
 // Endpoint to create a subscription for the monthly plan
 router.post('/create-subscription', async (req, res) => {

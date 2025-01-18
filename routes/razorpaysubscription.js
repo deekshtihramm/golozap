@@ -86,7 +86,7 @@ router.post('/add_basic_subscription', async (req, res) => {
       status: 'pending',
       startDate: subscriptionStartDate,
       endDate: new Date(razorpaySubscription.end_at * 1000),
-      paymentLink: paymentLink.short_url, // Store the payment link
+      // paymentLink: paymentLink.short_url, // Store the payment link
     });
 
     await newSubscription.save();

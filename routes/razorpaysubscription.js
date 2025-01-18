@@ -171,32 +171,6 @@ router.post('/get_subscription_details', async (req, res) => {
   }
 });
 
-// Create order API endpoint
-app.post('/create-order', async (req, res) => {
-  try {
-    const { amount } = req.body;  // Get the amount from the client
-
-    // Generate the order on Razorpay
-    const orderOptions = {
-      amount: amount * 100, // Amount in paise
-      currency: 'INR',
-      receipt: 'order_rcptid_11',
-      payment_capture: 1,
-    };
-
-    // Create the order
-    razorpay.orders.create(orderOptions, (err, order) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error creating order', error: err });
-      }
-      // Send the order ID to the client
-      res.json({ orderId: order.id });
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Error processing request', error: error.message });
-  }
-});
-
 
 // Endpoint to create a subscription for the monthly plan
 app.post('/create-subscription', async (req, res) => {

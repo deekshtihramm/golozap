@@ -47,8 +47,7 @@ router.post('/add_basic_subscription', async (req, res) => {
     const currency = req.body.currency || 'INR'; // Default currency to INR
 
     // Set startDate to 5 minutes from now (to ensure it's in the future)
-    const startDate = new Date();
-    startDate.setMinutes(startDate.getMinutes() + 1); // Add 1 minutes to current time
+    const startDate = new Date(); // Current time
     const startDateISO = startDate.toISOString(); // Convert to ISO string
 
     // Create Razorpay subscription

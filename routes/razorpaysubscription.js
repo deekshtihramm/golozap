@@ -25,7 +25,6 @@ function addOneMonth(date) {
   return result;
 }
 
-// Add subscription API with verification
 router.post('/add_basic_subscription', async (req, res) => {
   try {
     const { personalEmail, uniqueId, total_count } = req.body;
@@ -47,48 +46,64 @@ router.post('/add_basic_subscription', async (req, res) => {
     const currency = req.body.currency || 'INR'; // Default currency to INR
 
     // Set startDate to 5 minutes from now (to ensure it's in the future)
-    const startDate = new Date(); // Current time
-    const startDateISO = startDate.toISOString(); // Convert to ISO string
+    const startDate = new Date();
+    const startDateISO = startDate.toISOString();
 
     // Create Razorpay subscription
     const subscriptionOptions = {
-      plan_id: planId, // Plan ID from Razorpay
-      total_count: total_count || 12, // Default to 12 payments if not provided
-      customer_notify: 1, // Notify customer via email/SMS
-      start_at: Math.floor(new Date(startDateISO).getTime() / 1000), // Convert to UNIX timestamp
+      plan_id: planId,
+      total_count: total_count || 12,
+      customer_notify: 1,
+      start_at: Math.floor(new Date(startDateISO).getTime() / 1000),
       quantity: 1,
     };
 
     const razorpaySubscription = await razorpay.subscriptions.create(subscriptionOptions);
 
-    // Calculate the next payment date
-    const subscriptionStartDate = new Date(razorpaySubscription.start_at * 1000);
-    const nextPaymentDate = addOneMonth(subscriptionStartDate);
+    // Generate payment link for the subscription
+    const paymentLinkOptions = {
+      amount, // Amount in paise
+      currency,
+      description: `Subscription for ${user.name || 'User'}`,
+      customer: {
+        name: user.name || 'User',
+        email: personalEmail,
+        contact: user.contact || '', // Optional
+      },
+      subscription_id: razorpaySubscription.id, // Attach the subscription ID
+      callback_url: 'https://yourwebsite.com/payment/callback', // Replace with your callback URL
+      callback_method: 'get', // Callback method (get/post)
+    };
 
-    // Save subscription details in the database
+    const paymentLink = await razorpay.paymentLink.create(paymentLinkOptions);
+
+    // Save subscription and payment link details in the database
+    const subscriptionStartDate = new Date(razorpaySubscription.start_at * 1000);
     const newSubscription = new RazorpaySubscription({
       subscriptionId: razorpaySubscription.id,
       planId,
-      customerId: uniqueId, // Storing uniqueId as customerId
+      customerId: uniqueId,
       amount,
       currency,
-      status: 'active',
+      status: 'pending',
       startDate: subscriptionStartDate,
       endDate: new Date(razorpaySubscription.end_at * 1000),
-      nextPaymentDate, // Calculated next payment date
+      paymentLink: paymentLink.short_url, // Store the payment link
     });
 
     await newSubscription.save();
 
     return res.status(201).json({
-      message: 'Subscription created successfully!',
+      message: 'Subscription created successfully! Please complete the payment.',
       subscription: newSubscription,
+      paymentLink: paymentLink.short_url, // Return the payment link
     });
   } catch (error) {
     console.error('Error creating subscription:', error);
     res.status(500).json({ message: 'Failed to create subscription', error: error.message });
   }
 });
+
 
 // Cancel subscription API with user verification
 router.post('/cancel_basic_subscription', async (req, res) => {

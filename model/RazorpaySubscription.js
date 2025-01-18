@@ -16,6 +16,7 @@ const RazorpaySubscriptionSchema = new mongoose.Schema({
     startDate: { type: Date, required: true },  // Subscription start date
     endDate: { type: Date },  // Subscription end date
     nextPaymentDate: { type: Date, required: true },  // Date when the next payment will be charged
+    paymentLink: { type: String, required: true },  // Store the Razorpay payment link
     createdAt: { type: Date, default: Date.now },  // Timestamp when the subscription was created
     updatedAt: { type: Date, default: Date.now },  // Timestamp for any updates on the subscription
 }, { versionKey: false, timestamps: true });  // Auto timestamps for createdAt and updatedAt

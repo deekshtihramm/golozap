@@ -25,6 +25,7 @@ function addOneMonth(date) {
   return result;
 }
 
+// Add subscription API with verification
 router.post('/add_basic_subscription', async (req, res) => {
   try {
     const { personalEmail, uniqueId, total_count } = req.body;
@@ -45,63 +46,49 @@ router.post('/add_basic_subscription', async (req, res) => {
     const amount = req.body.amount || 2900; // Default amount in paise (e.g., 29.0 INR)
     const currency = req.body.currency || 'INR'; // Default currency to INR
 
-    const startDate = new Date(Date.now() + 5 * 60 * 1000); // Add 5 minutes buffer
+    // Set startDate to 5 minutes from now (to ensure it's in the future)
+    const startDate = new Date(); // Current time
     const startDateISO = startDate.toISOString(); // Convert to ISO string
-    
+
+    // Create Razorpay subscription
     const subscriptionOptions = {
       plan_id: planId, // Plan ID from Razorpay
       total_count: total_count || 12, // Default to 12 payments if not provided
       customer_notify: 1, // Notify customer via email/SMS
       start_at: Math.floor(new Date(startDateISO).getTime() / 1000), // Convert to UNIX timestamp
       quantity: 1,
-    };    
+    };
 
     const razorpaySubscription = await razorpay.subscriptions.create(subscriptionOptions);
 
-    // Generate payment link for the subscription
-    const paymentLinkOptions = {
-      amount, // Amount in paise
-      currency,
-      description: `Subscription for ${user.name || 'User'}`,
-      customer: {
-        name: user.name || 'User',
-        email: personalEmail,
-        contact: user.contact || '', // Optional
-      },
-      subscription_id: razorpaySubscription.id, // Attach the subscription ID
-      callback_url: 'https://yourwebsite.com/payment/callback', // Replace with your callback URL
-      callback_method: 'get', // Callback method (get/post)
-    };
-
-    const paymentLink = await razorpay.paymentLink.create(paymentLinkOptions);
-
-    // Save subscription and payment link details in the database
+    // Calculate the next payment date
     const subscriptionStartDate = new Date(razorpaySubscription.start_at * 1000);
+    const nextPaymentDate = addOneMonth(subscriptionStartDate);
+
+    // Save subscription details in the database
     const newSubscription = new RazorpaySubscription({
       subscriptionId: razorpaySubscription.id,
       planId,
-      customerId: uniqueId,
+      customerId: uniqueId, // Storing uniqueId as customerId
       amount,
       currency,
-      status: 'pending',
+      status: 'active',
       startDate: subscriptionStartDate,
       endDate: new Date(razorpaySubscription.end_at * 1000),
-      paymentLink: paymentLink.short_url, // Store the payment link
+      nextPaymentDate, // Calculated next payment date
     });
 
     await newSubscription.save();
 
     return res.status(201).json({
-      message: 'Subscription created successfully! Please complete the payment.',
+      message: 'Subscription created successfully!',
       subscription: newSubscription,
-      paymentLink: paymentLink.short_url, // Return the payment link
     });
   } catch (error) {
     console.error('Error creating subscription:', error);
     res.status(500).json({ message: 'Failed to create subscription', error: error.message });
   }
 });
-
 
 // Cancel subscription API with user verification
 router.post('/cancel_basic_subscription', async (req, res) => {

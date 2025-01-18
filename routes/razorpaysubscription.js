@@ -25,7 +25,6 @@ function addOneMonth(date) {
   return result;
 }
 
-// Add subscription API with verification
 router.post('/add_basic_subscription', async (req, res) => {
   try {
     const { personalEmail, uniqueId, total_count } = req.body;
@@ -46,16 +45,19 @@ router.post('/add_basic_subscription', async (req, res) => {
     const amount = req.body.amount || 2900; // Default amount in paise (e.g., 29.0 INR)
     const currency = req.body.currency || 'INR'; // Default currency to INR
 
-    // Set startDate to 5 minutes from now (to ensure it's in the future)
+    // Set startDate to 5 minutes from now to ensure it's in the future
     const startDate = new Date();
-    const startDateISO = startDate.toISOString(); // Convert to ISO string
+    startDate.setMinutes(startDate.getMinutes() + 5); // Adding 5 minutes to the current time
+
+    // Convert startDate to UNIX timestamp (in seconds)
+    const startAtTimestamp = Math.floor(startDate.getTime() / 1000);
 
     // Create Razorpay subscription
     const subscriptionOptions = {
       plan_id: planId, // Plan ID from Razorpay
       total_count: total_count || 12, // Default to 12 payments if not provided
       customer_notify: 1, // Notify customer via email/SMS
-      start_at: Math.floor(new Date(startDateISO).getTime() / 1000), // Convert to UNIX timestamp
+      start_at: startAtTimestamp, // Ensure start_at is in the future
       quantity: 1,
     };
 
@@ -99,7 +101,6 @@ router.post('/add_basic_subscription', async (req, res) => {
     res.status(500).json({ message: 'Failed to create subscription', error: error.message });
   }
 });
-
 
 // Cancel subscription API with user verification
 router.post('/cancel_basic_subscription', async (req, res) => {

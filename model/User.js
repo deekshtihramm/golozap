@@ -53,7 +53,7 @@ const UserSchema = new mongoose.Schema(
         item11: { type: String },
         item12: { type: String },
         item13: { type: String },
-        item14: { type: String },
+        subscriptionStatus: { type: String },
         subscriptionId: { type: String }
     },
     {

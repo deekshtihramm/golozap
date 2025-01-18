@@ -88,6 +88,11 @@ router.post('/add_basic_subscription', async (req, res) => {
 
     await newSubscription.save();
 
+    // Update user data with subscription details
+    user.subscriptionId = razorpaySubscription.id;
+    user.subscriptionStatus = 'active';
+    await user.save();
+
     return res.status(201).json({
       message: 'Subscription created successfully!',
       subscription: newSubscription,
@@ -101,6 +106,7 @@ router.post('/add_basic_subscription', async (req, res) => {
     res.status(500).json({ message: 'Failed to create subscription', error: error.message });
   }
 });
+
 
 // Cancel subscription API with user verification
 router.post('/cancel_basic_subscription', async (req, res) => {

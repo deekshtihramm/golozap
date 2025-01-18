@@ -134,4 +134,103 @@ router.post('/cancel_basic_subscription', async (req, res) => {
     }
   });
 
+  // Get Razorpay subscription details
+router.post('/get_subscription_details', async (req, res) => {
+  try {
+    const { personalEmail, uniqueId } = req.body;
+
+    // Validate inputs
+    if (!personalEmail || !uniqueId) {
+      return res.status(400).json({ message: 'All required fields (personalEmail, uniqueId) must be provided' });
+    }
+
+    // Verify personalEmail and uniqueId in the User collection
+    const user = await User.findOne({ personalEmail, uniqueId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
+    }
+
+    // Fetch the user's active subscription from the database
+    const subscription = await RazorpaySubscription.findOne({ customerId: uniqueId, status: 'active' });
+    if (!subscription) {
+      return res.status(404).json({ message: 'No active subscription found for the user' });
+    }
+
+    // Fetch Razorpay subscription details using the Razorpay subscription ID
+    const razorpaySubscription = await razorpay.subscriptions.fetch(subscription.subscriptionId);
+
+    return res.status(200).json({
+      message: 'Subscription details fetched successfully!',
+      razorpayId: razorpaySubscription.id,
+      subscriptionId: subscription.subscriptionId,
+      amount: razorpaySubscription.amount / 100, // Amount is in paise, so convert to INR
+    });
+  } catch (error) {
+    console.error('Error fetching subscription details:', error);
+    res.status(500).json({ message: 'Failed to fetch subscription details', error: error.message });
+  }
+});
+
+// Create order API endpoint
+app.post('/create-order', async (req, res) => {
+  try {
+    const { amount } = req.body;  // Get the amount from the client
+
+    // Generate the order on Razorpay
+    const orderOptions = {
+      amount: amount * 100, // Amount in paise
+      currency: 'INR',
+      receipt: 'order_rcptid_11',
+      payment_capture: 1,
+    };
+
+    // Create the order
+    razorpay.orders.create(orderOptions, (err, order) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error creating order', error: err });
+      }
+      // Send the order ID to the client
+      res.json({ orderId: order.id });
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error processing request', error: error.message });
+  }
+});
+
+
+// Endpoint to create a subscription for the monthly plan
+app.post('/create-subscription', async (req, res) => {
+  try {
+    const { userEmail, planId, amount } = req.body;
+
+    // Validate inputs
+    if (!userEmail || !planId || !amount) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Creating the subscription on Razorpay
+    const subscriptionOptions = {
+      plan_id: planId, // Razorpay Plan ID for the monthly plan
+      total_count: 12, // Number of payments in the subscription (12 for 1 year)
+      customer_notify: 1, // Notify customer via email/SMS
+      start_at: Math.floor(new Date().getTime() / 1000), // Start time in UNIX timestamp
+      quantity: 1, // For 1 user
+    };
+
+    // Create the subscription
+    const subscription = await razorpay.subscriptions.create(subscriptionOptions);
+
+    // Send the subscription details back to the client
+    res.status(200).json({ 
+      message: 'Subscription created successfully!',
+      subscriptionId: subscription.id,
+      subscriptionDetails: subscription
+    });
+  } catch (error) {
+    console.error('Error creating subscription:', error);
+    res.status(500).json({ message: 'Failed to create subscription', error: error.message });
+  }
+});
+
+
 module.exports = router;

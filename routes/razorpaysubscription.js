@@ -173,7 +173,7 @@ router.post('/get_subscription_details', async (req, res) => {
 
 
 // Endpoint to create a subscription for the monthly plan
-app.post('/create-subscription', async (req, res) => {
+router.post('/create-subscription', async (req, res) => {
   try {
     const { userEmail, planId, amount } = req.body;
 

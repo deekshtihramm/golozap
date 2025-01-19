@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const cron = require('node-cron');
+const Razorpay = require('razorpay');
 
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI;
@@ -14,6 +16,12 @@ mongoose.connect(mongoURI)
 
 // Import User model
 const User = require('./model/User'); // Adjust path as needed
+
+// Initialize Razorpay
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,  // Your Razorpay Key ID
+  key_secret: process.env.RAZORPAY_KEY_SECRET  // Your Razorpay Key Secret
+});
 
 // Initialize Express
 const app = express();
@@ -32,6 +40,45 @@ const subscriptionRoutes = require('./routes/razorpaysubscription');
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api', areaRoutes);
+
+// Function to check subscription status from Razorpay
+const checkSubscriptionStatus = async (subscriptionId) => {
+  try {
+    const subscription = await razorpay.subscriptions.fetch(subscriptionId);
+    return subscription.status;  // subscription.status can be 'active', 'expired', etc.
+  } catch (error) {
+    console.error('Error fetching subscription status:', error);
+    return null; // In case of error, return null or handle accordingly
+  }
+};
+
+// Function to check and update subscription status for all users
+const updateSubscriptionStatus = async () => {
+  try {
+    // Fetch all users
+    const users = await User.find({});
+
+    for (const user of users) {
+      if (user.subscriptionId) {
+        const currentStatus = await checkSubscriptionStatus(user.subscriptionId);
+
+        // Update the subscription status in the database
+        if (currentStatus) {
+          user.subscriptionStatus = currentStatus;
+          await user.save();  // Save updated user data
+          console.log(`Updated subscription status for user ${user.uniqueId} to ${currentStatus}`);
+        } else {
+          console.log(`Couldn't fetch status for user ${user.uniqueId}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error updating subscription statuses:', error);
+  }
+};
+
+// Set up cron job to run every month (e.g., on the 1st day of every month)
+cron.schedule('0 0 1 * *', updateSubscriptionStatus);  // This runs at midnight on the 1st day of every month
 
 // Function to delete expired news items from all users
 const deleteExpiredNews = async () => {

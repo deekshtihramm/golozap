@@ -91,7 +91,7 @@ router.post('/add_basic_subscription', async (req, res) => {
     // Update user data with subscription details
     user.subscriptionId = razorpaySubscription.id;
     user.subscriptionStatus = 'active';
-    user.subscriptionType = 'BasicSubscription';
+    user.subscriptionType = 'Basic';
     await user.save();
 
     return res.status(201).json({

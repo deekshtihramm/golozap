@@ -108,50 +108,224 @@ router.post('/add_basic_subscription', async (req, res) => {
   }
 });
 
+router.post('/add_premium_subscription', async (req, res) => {
+  try {
+    const { personalEmail, uniqueId, total_count } = req.body;
+
+    // Validate inputs
+    if (!personalEmail || !uniqueId || !total_count) {
+      return res.status(400).json({ message: 'All required fields must be provided' });
+    }
+
+    // Verify personalEmail and uniqueId in the User collection
+    const user = await User.findOne({ personalEmail, uniqueId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
+    }
+
+    // Set default values
+    const planId = req.body.planId || 'plan_PlIVykx48qHLAr'; // Replace with your default Plan ID
+    const amount = req.body.amount || 11900; // Default amount in paise (e.g., 119.0 INR)
+    const currency = req.body.currency || 'INR'; // Default currency to INR
+
+    // Set startDate to 5 minutes from now to ensure it's in the future
+    const startDate = new Date();
+    startDate.setMinutes(startDate.getMinutes() + 5); // Adding 5 minutes to the current time
+
+    // Convert startDate to UNIX timestamp (in seconds)
+    const startAtTimestamp = Math.floor(startDate.getTime() / 1000);
+
+    // Create Razorpay subscription
+    const subscriptionOptions = {
+      plan_id: planId, // Plan ID from Razorpay
+      total_count: total_count || 12, // Default to 12 payments if not provided
+      customer_notify: 1, // Notify customer via email/SMS
+      start_at: startAtTimestamp, // Ensure start_at is in the future
+      quantity: 1,
+    };
+
+    const razorpaySubscription = await razorpay.subscriptions.create(subscriptionOptions);
+
+    // Extract the payment link (if Razorpay provides it)
+    const paymentLink = razorpaySubscription.payment_links && razorpaySubscription.payment_links[0]
+      ? razorpaySubscription.payment_links[0].short_url
+      : null;
+
+    // Calculate the next payment date
+    const subscriptionStartDate = new Date(razorpaySubscription.start_at * 1000);
+    const nextPaymentDate = addOneMonth(subscriptionStartDate);
+
+    // Save subscription details in the database
+    const newSubscription = new RazorpaySubscription({
+      subscriptionId: razorpaySubscription.id,
+      planId,
+      customerId: uniqueId, // Storing uniqueId as customerId
+      amount,
+      currency,
+      status: 'active',
+      startDate: subscriptionStartDate,
+      endDate: new Date(razorpaySubscription.end_at * 1000),
+      nextPaymentDate, // Calculated next payment date
+      paymentLink, // Store the payment link
+    });
+
+    await newSubscription.save();
+
+    // Update user data with subscription details
+    user.subscriptionId = razorpaySubscription.id;
+    user.subscriptionStatus = 'active';
+    user.subscriptionType = 'Premium';
+    await user.save();
+
+    return res.status(201).json({
+      message: 'Subscription created successfully!',
+      subscription: newSubscription,
+      paymentLink: paymentLink, // Return the payment link in the response
+    });
+  } catch (error) {
+    console.error('Error creating subscription:', error);
+    if (error.response) {
+      console.error('Razorpay API error details:', error.response);
+    }
+    res.status(500).json({ message: 'Failed to create subscription', error: error.message });
+  }
+});
+
+router.post('/add_premium_pro_subscription', async (req, res) => {
+  try {
+    const { personalEmail, uniqueId, total_count } = req.body;
+
+    // Validate inputs
+    if (!personalEmail || !uniqueId || !total_count) {
+      return res.status(400).json({ message: 'All required fields must be provided' });
+    }
+
+    // Verify personalEmail and uniqueId in the User collection
+    const user = await User.findOne({ personalEmail, uniqueId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
+    }
+
+    // Set default values
+    const planId = req.body.planId || 'plan_PlIY4iwXxYVGDB'; // Replace with your default Plan ID
+    const amount = req.body.amount || 39000; // Default amount in paise (e.g., 390.0 INR)
+    const currency = req.body.currency || 'INR'; // Default currency to INR
+
+    // Set startDate to 5 minutes from now to ensure it's in the future
+    const startDate = new Date();
+    startDate.setMinutes(startDate.getMinutes() + 5); // Adding 5 minutes to the current time
+
+    // Convert startDate to UNIX timestamp (in seconds)
+    const startAtTimestamp = Math.floor(startDate.getTime() / 1000);
+
+    // Create Razorpay subscription
+    const subscriptionOptions = {
+      plan_id: planId, // Plan ID from Razorpay
+      total_count: total_count || 12, // Default to 12 payments if not provided
+      customer_notify: 1, // Notify customer via email/SMS
+      start_at: startAtTimestamp, // Ensure start_at is in the future
+      quantity: 1,
+    };
+
+    const razorpaySubscription = await razorpay.subscriptions.create(subscriptionOptions);
+
+    // Extract the payment link (if Razorpay provides it)
+    const paymentLink = razorpaySubscription.payment_links && razorpaySubscription.payment_links[0]
+      ? razorpaySubscription.payment_links[0].short_url
+      : null;
+
+    // Calculate the next payment date
+    const subscriptionStartDate = new Date(razorpaySubscription.start_at * 1000);
+    const nextPaymentDate = addOneMonth(subscriptionStartDate);
+
+    // Save subscription details in the database
+    const newSubscription = new RazorpaySubscription({
+      subscriptionId: razorpaySubscription.id,
+      planId,
+      customerId: uniqueId, // Storing uniqueId as customerId
+      amount,
+      currency,
+      status: 'active',
+      startDate: subscriptionStartDate,
+      endDate: new Date(razorpaySubscription.end_at * 1000),
+      nextPaymentDate, // Calculated next payment date
+      paymentLink, // Store the payment link
+    });
+
+    await newSubscription.save();
+
+    // Update user data with subscription details
+    user.subscriptionId = razorpaySubscription.id;
+    user.subscriptionStatus = 'active';
+    user.subscriptionType = 'Premium Pro';
+    await user.save();
+
+    return res.status(201).json({
+      message: 'Subscription created successfully!',
+      subscription: newSubscription,
+      paymentLink: paymentLink, // Return the payment link in the response
+    });
+  } catch (error) {
+    console.error('Error creating subscription:', error);
+    if (error.response) {
+      console.error('Razorpay API error details:', error.response);
+    }
+    res.status(500).json({ message: 'Failed to create subscription', error: error.message });
+  }
+});
 
 // Cancel subscription API with user verification
-router.post('/cancel_basic_subscription', async (req, res) => {
-    try {
-      const { personalEmail, uniqueId, subscriptionId } = req.body;
-  
-      // Validate inputs
-      if (!personalEmail || !uniqueId || !subscriptionId) {
-        return res.status(400).json({ message: 'All required fields (personalEmail, uniqueId, subscriptionId) must be provided' });
-      }
-  
-      // Verify personalEmail and uniqueId in the User collection
-      const user = await User.findOne({ personalEmail, uniqueId });
-      if (!user) {
-        return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
-      }
-  
-      // Fetch the subscription from your database to check if it exists
-      const subscription = await RazorpaySubscription.findOne({ subscriptionId });
-      if (!subscription) {
-        return res.status(404).json({ message: 'Subscription not found' });
-      }
-  
-      // Check if the subscription belongs to the verified user (optional, but recommended for security)
-      if (subscription.customerId !== uniqueId) {
-        return res.status(403).json({ message: 'You do not have permission to cancel this subscription' });
-      }
-  
-      // Call Razorpay API to cancel the subscription
-      const razorpayResponse = await razorpay.subscriptions.cancel(subscriptionId);
-  
-      // Update the subscription status in your database
-      subscription.status = 'canceled';
-      await subscription.save();
-  
-      return res.status(200).json({
-        message: 'Subscription canceled successfully!',
-        razorpayResponse,
+router.post('/cancel_subscription', async (req, res) => {
+  try {
+    const { personalEmail, uniqueId, subscriptionId } = req.body;
+
+    // Validate inputs
+    if (!personalEmail || !uniqueId || !subscriptionId) {
+      return res.status(400).json({
+        message: 'All required fields (personalEmail, uniqueId, subscriptionId) must be provided',
       });
-    } catch (error) {
-      console.error('Error canceling subscription:', error);
-      res.status(500).json({ message: 'Failed to cancel subscription', error: error.message });
     }
-  });
+
+    // Verify personalEmail and uniqueId in the User collection
+    const user = await User.findOne({ personalEmail, uniqueId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
+    }
+
+    // Fetch the subscription from your database to check if it exists
+    const subscription = await RazorpaySubscription.findOne({ subscriptionId });
+    if (!subscription) {
+      return res.status(404).json({ message: 'Subscription not found' });
+    }
+
+    // Check if the subscription belongs to the verified user (optional, but recommended for security)
+    if (subscription.customerId !== uniqueId) {
+      return res.status(403).json({ message: 'You do not have permission to cancel this subscription' });
+    }
+
+    // Call Razorpay API to cancel the subscription
+    const razorpayResponse = await razorpay.subscriptions.cancel(subscriptionId);
+
+    // Update the subscription status in your RazorpaySubscription collection
+    subscription.status = 'canceled';
+    await subscription.save();
+
+    // Update the subscription status in the User collection
+    user.subscriptionStatus = 'canceled';
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Subscription canceled successfully!',
+      razorpayResponse,
+    });
+  } catch (error) {
+    console.error('Error canceling subscription:', error);
+    res.status(500).json({
+      message: 'Failed to cancel subscription',
+      error: error.message,
+    });
+  }
+});
 
   // Get Razorpay subscription details
 router.post('/get_subscription_details', async (req, res) => {

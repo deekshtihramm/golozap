@@ -256,5 +256,32 @@ router.post('/find-subscription-type', async (req, res) => {
   }
 });
 
+router.post('/fetch-subscription-details', async (req, res) => {
+  try {
+    const { subscriptionId } = req.body;
+
+    // Validate input
+    if (!subscriptionId) {
+      return res.status(400).json({ message: 'Missing required subscriptionId' });
+    }
+
+    // Fetch subscription details from Razorpay using the subscriptionId
+    razorpay.subscriptions.fetch(subscriptionId).then((subscription) => {
+      // Subscription details returned by Razorpay
+      return res.status(200).json({
+        message: 'Subscription details fetched successfully',
+        subscriptionDetails: subscription,
+      });
+    }).catch((error) => {
+      console.error('Error fetching subscription details from Razorpay:', error);
+      return res.status(500).json({ message: 'An error occurred', error: error.message });
+    });
+  } catch (error) {
+    console.error('Error fetching subscription details:', error);
+    return res.status(500).json({ message: 'An error occurred', error: error.message });
+  }
+});
+
+
 
 module.exports = router;

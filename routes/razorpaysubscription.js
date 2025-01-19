@@ -266,22 +266,39 @@ router.post('/fetch-subscription-details', async (req, res) => {
     }
 
     // Fetch subscription details from Razorpay using the subscriptionId
-    razorpay.subscriptions.fetch(subscriptionId).then((subscription) => {
-      // Subscription details returned by Razorpay
-      return res.status(200).json({
-        message: 'Subscription details fetched successfully',
-        subscriptionDetails: subscription,
+    razorpay.subscriptions.fetch(subscriptionId)
+      .then((subscription) => {
+        // Log the full subscription data for debugging
+        console.log('Full Subscription Data:', subscription);
+
+        // Extract and format the necessary details
+        const subscriptionDetails = {
+          subscriptionStatus: subscription.status,    // Status of the subscription (e.g., active, expired)
+          subscriptionId: subscription.id,             // Unique ID of the subscription
+          createdAt: new Date(subscription.created_at * 1000).toLocaleString(),  // Convert Unix timestamp to a readable date
+          nextPaymentDate: new Date(subscription.charge_at * 1000).toLocaleString(),  // Next payment date
+          amount: subscription.amount / 100,  // Amount in currency, converted from paise (if applicable)
+          expiryDate: subscription.expire_by ? new Date(subscription.expire_by * 1000).toLocaleString() : 'Not Available', // Expiry date if available
+          paymentMethod: subscription.payment_method,  // Payment method (e.g., UPI, card, etc.)
+          totalCount: subscription.total_count,        // Total number of cycles/payments
+          paidCount: subscription.paid_count,          // Number of payments made
+          remainingCount: subscription.remaining_count,  // Number of remaining payments
+        };
+
+        // Return the subscription details in the response
+        return res.status(200).json({
+          message: 'Subscription details fetched successfully',
+          subscriptionDetails,
+        });
+      })
+      .catch((error) => {
+        console.error('Error fetching subscription details from Razorpay:', error);
+        return res.status(500).json({ message: 'An error occurred while fetching subscription details', error: error.message });
       });
-    }).catch((error) => {
-      console.error('Error fetching subscription details from Razorpay:', error);
-      return res.status(500).json({ message: 'An error occurred', error: error.message });
-    });
   } catch (error) {
     console.error('Error fetching subscription details:', error);
     return res.status(500).json({ message: 'An error occurred', error: error.message });
   }
 });
-
-
 
 module.exports = router;

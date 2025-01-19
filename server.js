@@ -80,9 +80,9 @@ const updateSubscriptionStatus = async () => {
 // Set up cron job to run every month (e.g., on the 1st day of every month)
 cron.schedule('0 0 1 * *', updateSubscriptionStatus);  // This runs at midnight on the 1st day of every month
 
-cron.schedule('* * * * *', () => {
-  console.log('This will run every minute');
-});
+// cron.schedule('* * * * *', () => {
+//   console.log('This will run every minute');
+// });
 
 
 // Function to delete expired news items from all users

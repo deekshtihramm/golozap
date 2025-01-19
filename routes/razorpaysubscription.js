@@ -224,4 +224,37 @@ router.post('/create-subscription', async (req, res) => {
   }
 });
 
+router.post('/find-subscription-type', async (req, res) => {
+  try {
+    const { uniqueId } = req.body;
+
+    // Validate input
+    if (!uniqueId) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Verify uniqueId in the User collection
+    const user = await User.findOne({ uniqueId });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with provided uniqueId' });
+    }
+
+    // Extract and return the subscription details
+    const { subscriptionType, subscriptionStatus, subscriptionId } = user;
+    return res.status(200).json({
+      message: 'Subscription details fetched successfully',
+      subscriptionDetails: {
+        subscriptionType,
+        subscriptionStatus,
+        subscriptionId,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching subscription details:', error);
+    return res.status(500).json({ message: 'An error occurred', error: error.message });
+  }
+});
+
+
 module.exports = router;

@@ -271,13 +271,15 @@ router.post('/fetch-subscription-details', async (req, res) => {
         // Log the full subscription data for debugging
         console.log('Full Subscription Data:', subscription);
 
+        const amount = subscription.amount ? subscription.amount / 100 : null;  // Convert to main currency unit or set to null
+
         // Extract and format the necessary details
         const subscriptionDetails = {
           subscriptionStatus: subscription.status,    // Status of the subscription (e.g., active, expired)
           subscriptionId: subscription.id,             // Unique ID of the subscription
           createdAt: new Date(subscription.created_at * 1000).toLocaleString(),  // Convert Unix timestamp to a readable date
           nextPaymentDate: new Date(subscription.charge_at * 1000).toLocaleString(),  // Next payment date
-          amount: subscription.amount / 100,  // Amount in currency, converted from paise (if applicable)
+          amount: amount,
           expiryDate: subscription.expire_by ? new Date(subscription.expire_by * 1000).toLocaleString() : 'Not Available', // Expiry date if available
           paymentMethod: subscription.payment_method,  // Payment method (e.g., UPI, card, etc.)
           totalCount: subscription.total_count,        // Total number of cycles/payments

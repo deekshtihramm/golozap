@@ -2,6 +2,7 @@ require('dotenv').config(); // Load environment variables
 
 const express = require('express');
 const RazorpaySubscription = require('../model/RazorpaySubscription'); // Import the subscription model
+const { RazorpayOrder } = require('../model/RazorpayOrder'); // Model to store order details
 const User = require('../model/User'); // Import the User model
 const Razorpay = require('razorpay');
 
@@ -271,6 +272,63 @@ router.post('/add_premium_pro_subscription', async (req, res) => {
       console.error('Razorpay API error details:', error.response);
     }
     res.status(500).json({ message: 'Failed to create subscription', error: error.message });
+  }
+});
+
+// One-Time Purchase API
+router.post('/create_one_time_purchase', async (req, res) => {
+  try {
+    const { personalEmail, uniqueId, amount, currency } = req.body;
+
+    // Validate input
+    if (!personalEmail || !uniqueId || !amount) {
+      return res.status(400).json({ message: 'All required fields must be provided' });
+    }
+
+    // Verify user
+    const user = await User.findOne({ personalEmail, uniqueId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
+    }
+
+    // Razorpay order options
+    const orderOptions = {
+      amount: amount * 100, // Razorpay accepts amount in paise (e.g., 500 INR -> 50000 paise)
+      currency: currency || 'INR', // Default to INR
+      receipt: `order_rcptid_${uniqueId}`, // Unique receipt ID
+      payment_capture: 1, // Automatically capture payment
+    };
+
+    // Create order in Razorpay
+    const order = await razorpay.orders.create(orderOptions);
+
+    // Save order details in the database
+    const newOrder = new RazorpayOrder({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      status: order.status,
+      createdAt: new Date(order.created_at * 1000), // Convert UNIX timestamp to JS Date
+      userId: user.uniqueId, // Link order to the user
+    });
+
+    await newOrder.save();
+
+    // Update the user's orderId field in the User collection
+    user.orderid = order.id;
+    await user.save();
+
+    // Respond with order details
+    res.status(201).json({
+      message: 'Order created successfully!',
+      orderId: order.id,
+      amount: order.amount / 100, // Convert back to regular currency format
+      currency: order.currency,
+      createdAt: newOrder.createdAt,
+    });
+  } catch (error) {
+    console.error('Error creating one-time purchase order:', error);
+    res.status(500).json({ message: 'Failed to create order', error: error.message });
   }
 });
 

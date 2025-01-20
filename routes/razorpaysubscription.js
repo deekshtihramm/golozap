@@ -309,7 +309,7 @@ router.post('/create_one_time_purchase', async (req, res) => {
       currency: order.currency,
       status: order.status,
       createdAt: new Date(order.created_at * 1000), // Convert UNIX timestamp to JS Date
-      userId: user.uniqueId, // Link order to the user
+      userId: uniqueId, // Link order to the user
     });
 
     await newOrder.save();

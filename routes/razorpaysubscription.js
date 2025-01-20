@@ -93,6 +93,9 @@ router.post('/add_basic_subscription', async (req, res) => {
     user.subscriptionId = razorpaySubscription.id;
     user.subscriptionStatus = 'active';
     user.subscriptionType = 'Basic';
+    user.orderType = null;
+    user.orderStatus = null;
+    user.orderid = null;
     await user.save();
 
     return res.status(201).json({
@@ -176,6 +179,9 @@ router.post('/add_premium_subscription', async (req, res) => {
     user.subscriptionId = razorpaySubscription.id;
     user.subscriptionStatus = 'active';
     user.subscriptionType = 'Premium';
+    user.orderType = null;
+    user.orderStatus = null;
+    user.orderid = null;
     await user.save();
 
     return res.status(201).json({
@@ -259,6 +265,9 @@ router.post('/add_premium_pro_subscription', async (req, res) => {
     user.subscriptionId = razorpaySubscription.id;
     user.subscriptionStatus = 'active';
     user.subscriptionType = 'Premium Pro';
+    user.orderType = null;
+    user.orderStatus = null;
+    user.orderid = null;
     await user.save();
 
     return res.status(201).json({
@@ -320,6 +329,11 @@ router.post('/create_premium_one_time_purchase', async (req, res) => {
     await newOrder.save();
 
     // Update the user's orderId field in the User collection
+    user.subscriptionId = null;
+    user.subscriptionStatus = null;
+    user.subscriptionType = null;
+    user.orderType = "Premium";
+    user.orderStatus = "active";
     user.orderid = order.id;
     await user.save();
 
@@ -490,6 +504,38 @@ router.post('/find-subscription-type', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching subscription details:', error);
+    return res.status(500).json({ message: 'An error occurred', error: error.message });
+  }
+});
+
+router.post('/find-order-type', async (req, res) => {
+  try {
+    const { uniqueId } = req.body;
+
+    // Validate input
+    if (!uniqueId) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Verify uniqueId in the User collection
+    const user = await User.findOne({ uniqueId });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with provided uniqueId' });
+    }
+
+    // Extract and return the Order details
+    const { orderType, orderStatus, orderId } = user;
+    return res.status(200).json({
+      message: 'Order details fetched successfully',
+      orderDetails: {
+        orderType,
+        orderStatus,
+        orderId,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching Order details:', error);
     return res.status(500).json({ message: 'An error occurred', error: error.message });
   }
 });

@@ -284,7 +284,73 @@ router.post('/add_premium_pro_subscription', async (req, res) => {
   }
 });
 
-// One-Time Purchase API
+router.post('/create_basic_one_time_purchase', async (req, res) => {
+  try {
+    const { personalEmail, uniqueId } = req.body;
+
+    // Validate input
+    if (!personalEmail || !uniqueId) {
+      return res.status(400).json({ message: 'All required fields must be provided' });
+    }
+
+    // Verify user
+    const user = await User.findOne({ personalEmail, uniqueId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
+    }
+
+    // Calculate expiry date (1 year from now)
+    const expiryDate = new Date();
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+  
+    // Razorpay order options
+    const orderOptions = {
+      amount: 309 * 100, // Razorpay accepts amount in paise (e.g., 500 INR -> 50000 paise)
+      currency: 'INR', // Default to INR
+      receipt: `order_rcptid_${uniqueId}`, // Unique receipt ID
+      payment_capture: 1, // Automatically capture payment
+    };
+
+    // Create order in Razorpay
+    const order = await razorpay.orders.create(orderOptions);
+
+     // Save order details in the database
+     const newOrder = new RazorpayOrder({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      status: order.status,
+      createdAt: new Date(order.created_at * 1000), // Convert UNIX timestamp to Date
+      expiryDate, // Set expiry date to 1 year later
+      userId: user.uniqueId, // Store user's uniqueId
+    });
+
+    await newOrder.save();
+
+    // Update the user's orderId field in the User collection
+    user.subscriptionId = null;
+    user.subscriptionStatus = null;
+    user.subscriptionType = null;
+    user.orderType = "Basic";
+    user.orderStatus = "active";
+    user.orderid = order.id;
+    await user.save();
+
+    // Respond with order details
+    res.status(201).json({
+      message: 'Order created successfully!',
+      orderId: order.id,
+      amount: order.amount / 100,
+      currency: order.currency,
+      createdAt: newOrder.createdAt,
+      expiryDate, // Return expiry date in the response
+    });
+  } catch (error) {
+    console.error('Error creating one-time purchase order:', error);
+    res.status(500).json({ message: 'Failed to create order', error: error.message });
+  }
+});
+
 router.post('/create_premium_one_time_purchase', async (req, res) => {
   try {
     const { personalEmail, uniqueId } = req.body;
@@ -333,6 +399,73 @@ router.post('/create_premium_one_time_purchase', async (req, res) => {
     user.subscriptionStatus = null;
     user.subscriptionType = null;
     user.orderType = "Premium";
+    user.orderStatus = "active";
+    user.orderid = order.id;
+    await user.save();
+
+    // Respond with order details
+    res.status(201).json({
+      message: 'Order created successfully!',
+      orderId: order.id,
+      amount: order.amount / 100,
+      currency: order.currency,
+      createdAt: newOrder.createdAt,
+      expiryDate, // Return expiry date in the response
+    });
+  } catch (error) {
+    console.error('Error creating one-time purchase order:', error);
+    res.status(500).json({ message: 'Failed to create order', error: error.message });
+  }
+});
+
+router.post('/create_premium_pro_one_time_purchase', async (req, res) => {
+  try {
+    const { personalEmail, uniqueId } = req.body;
+
+    // Validate input
+    if (!personalEmail || !uniqueId) {
+      return res.status(400).json({ message: 'All required fields must be provided' });
+    }
+
+    // Verify user
+    const user = await User.findOne({ personalEmail, uniqueId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
+    }
+
+    // Calculate expiry date (1 year from now)
+    const expiryDate = new Date();
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+  
+    // Razorpay order options
+    const orderOptions = {
+      amount: 4150 * 100, // Razorpay accepts amount in paise (e.g., 500 INR -> 50000 paise)
+      currency: 'INR', // Default to INR
+      receipt: `order_rcptid_${uniqueId}`, // Unique receipt ID
+      payment_capture: 1, // Automatically capture payment
+    };
+
+    // Create order in Razorpay
+    const order = await razorpay.orders.create(orderOptions);
+
+     // Save order details in the database
+     const newOrder = new RazorpayOrder({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      status: order.status,
+      createdAt: new Date(order.created_at * 1000), // Convert UNIX timestamp to Date
+      expiryDate, // Set expiry date to 1 year later
+      userId: user.uniqueId, // Store user's uniqueId
+    });
+
+    await newOrder.save();
+
+    // Update the user's orderId field in the User collection
+    user.subscriptionId = null;
+    user.subscriptionStatus = null;
+    user.subscriptionType = null;
+    user.orderType = "Premium Pro";
     user.orderStatus = "active";
     user.orderid = order.id;
     await user.save();
@@ -553,7 +686,7 @@ router.post('/fetch-subscription-details', async (req, res) => {
     razorpay.subscriptions.fetch(subscriptionId)
       .then((subscription) => {
         // Log the full subscription data for debugging
-        console.log('Full Subscription Data:', subscription);
+        // console.log('Full Subscription Data:', subscription);
 
         const amount = subscription.amount ? subscription.amount / 100 : null;  // Convert to main currency unit or set to null
 
@@ -600,7 +733,7 @@ router.post('/fetch-order-details', async (req, res) => {
     const order = await razorpay.orders.fetch(orderId);
 
     // Log the full order data for debugging
-    console.log('Full Order Data:', order);
+    // console.log('Full Order Data:', order);
 
     const amount = order.amount ? order.amount / 100 : null; // Convert to main currency unit
     const amountPaid = order.amount_paid ? order.amount_paid / 100 : null;

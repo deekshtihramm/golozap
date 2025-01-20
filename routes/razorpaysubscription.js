@@ -597,36 +597,39 @@ router.post('/fetch-order-details', async (req, res) => {
     }
 
     // Fetch order details from Razorpay using the orderId
-    razorpay.orders.fetch(orderId)
-      .then((order) => {
-        // Log the full order data for debugging
-        console.log('Full Order Data:', order);
+    const order = await razorpay.orders.fetch(orderId);
 
-        const amount = order.amount ? order.amount / 100 : null;  // Convert to main currency unit or set to null
-        // const amountPaid = order.amount_paid ? order.amount_paid / 100 : null;
+    // Log the full order data for debugging
+    console.log('Full Order Data:', order);
 
-        // Extract and format the necessary details
-        const orderDetails = {
-          orderStatus: order.status,               // Status of the order (e.g., created, paid)
-          orderId: order.id,                       // Unique ID of the order
-          createdAt: new Date(order.created_at * 1000).toLocaleString(),  // Convert Unix timestamp to a readable date
-          amount: amount,                          // Total amount of the order
-          currency: order.currency,                // Currency of the order
-          receipt: order.receipt,                  // Receipt associated with the order
-          notes: order.notes,                      // Any additional notes in the order
-          paymentMethod: order.method || 'N/A',    // Payment method if available
-        };
+    const amount = order.amount ? order.amount / 100 : null; // Convert to main currency unit
+    const amountPaid = order.amount_paid ? order.amount_paid / 100 : null;
 
-        // Return the order details in the response
-        return res.status(200).json({
-          message: 'Order details fetched successfully',
-          orderDetails,
-        });
-      })
-      .catch((error) => {
-        console.error('Error fetching order details from Razorpay:', error);
-        return res.status(500).json({ message: 'An error occurred while fetching order details', error: error.message });
-      });
+    // Fetch payment details for the order
+    const payments = await razorpay.orders.fetchPayments(orderId);
+    const paymentMethod =
+      payments.items && payments.items.length > 0
+        ? payments.items[0].method
+        : 'N/A'; // Use the first payment method or default to "N/A"
+
+    // Extract and format the necessary details
+    const orderDetails = {
+      orderStatus: order.status, // Status of the order (e.g., created, paid)
+      orderId: order.id, // Unique ID of the order
+      createdAt: new Date(order.created_at * 1000).toLocaleString(), // Convert Unix timestamp to a readable date
+      amount: amount, // Total amount of the order
+      amountPaid: amountPaid, // Paid amount
+      currency: order.currency, // Currency of the order
+      receipt: order.receipt, // Receipt associated with the order
+      notes: order.notes, // Any additional notes in the order
+      paymentMethod: paymentMethod, // Actual payment method (e.g., card, upi, netbanking)
+    };
+
+    // Return the order details in the response
+    return res.status(200).json({
+      message: 'Order details fetched successfully',
+      orderDetails,
+    });
   } catch (error) {
     console.error('Error fetching order details:', error);
     return res.status(500).json({ message: 'An error occurred', error: error.message });

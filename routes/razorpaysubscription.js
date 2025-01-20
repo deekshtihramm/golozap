@@ -276,12 +276,12 @@ router.post('/add_premium_pro_subscription', async (req, res) => {
 });
 
 // One-Time Purchase API
-router.post('/create_one_time_purchase', async (req, res) => {
+router.post('/create_premium_one_time_purchase', async (req, res) => {
   try {
-    const { personalEmail, uniqueId, amount, currency } = req.body;
+    const { personalEmail, uniqueId } = req.body;
 
     // Validate input
-    if (!personalEmail || !uniqueId || !amount) {
+    if (!personalEmail || !uniqueId) {
       return res.status(400).json({ message: 'All required fields must be provided' });
     }
 
@@ -291,10 +291,14 @@ router.post('/create_one_time_purchase', async (req, res) => {
       return res.status(404).json({ message: 'User not found with provided email and uniqueId' });
     }
 
+    // Calculate expiry date (1 year from now)
+    const expiryDate = new Date();
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+  
     // Razorpay order options
     const orderOptions = {
-      amount: amount * 100, // Razorpay accepts amount in paise (e.g., 500 INR -> 50000 paise)
-      currency: currency || 'INR', // Default to INR
+      amount: 1188 * 100, // Razorpay accepts amount in paise (e.g., 500 INR -> 50000 paise)
+      currency: 'INR', // Default to INR
       receipt: `order_rcptid_${uniqueId}`, // Unique receipt ID
       payment_capture: 1, // Automatically capture payment
     };
@@ -302,14 +306,15 @@ router.post('/create_one_time_purchase', async (req, res) => {
     // Create order in Razorpay
     const order = await razorpay.orders.create(orderOptions);
 
-    // Save order details in the database
-    const newOrder = new RazorpayOrder({
+     // Save order details in the database
+     const newOrder = new RazorpayOrder({
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
       status: order.status,
-      createdAt: new Date(order.created_at * 1000), // Convert UNIX timestamp to JS Date
-      userId: uniqueId, // Link order to the user
+      createdAt: new Date(order.created_at * 1000), // Convert UNIX timestamp to Date
+      expiryDate, // Set expiry date to 1 year later
+      userId: user.uniqueId, // Store user's uniqueId
     });
 
     await newOrder.save();
@@ -322,9 +327,10 @@ router.post('/create_one_time_purchase', async (req, res) => {
     res.status(201).json({
       message: 'Order created successfully!',
       orderId: order.id,
-      amount: order.amount / 100, // Convert back to regular currency format
+      amount: order.amount / 100,
       currency: order.currency,
       createdAt: newOrder.createdAt,
+      expiryDate, // Return expiry date in the response
     });
   } catch (error) {
     console.error('Error creating one-time purchase order:', error);

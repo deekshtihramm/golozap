@@ -525,13 +525,13 @@ router.post('/find-order-type', async (req, res) => {
     }
 
     // Extract and return the Order details
-    const { orderType, orderStatus, orderId } = user;
+    const { orderType, orderStatus, orderid } = user;
     return res.status(200).json({
       message: 'Order details fetched successfully',
       orderDetails: {
         orderType,
         orderStatus,
-        orderId,
+        orderid,
       },
     });
   } catch (error) {

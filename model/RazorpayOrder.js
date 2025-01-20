@@ -6,7 +6,7 @@ const RazorpayOrderSchema = new mongoose.Schema({
   currency: { type: String, required: true },
   status: { type: String, required: true }, // e.g., 'created'
   createdAt: { type: Date, required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  userId: { type: String, required: true },
 });
 
 module.exports.RazorpayOrder = mongoose.model('RazorpayOrder', RazorpayOrderSchema);

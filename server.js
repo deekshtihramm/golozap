@@ -145,8 +145,8 @@ const updateOldUsers = async () => {
   }
 };
 
-// Call the Update Function
-updateOldUsers();
+// Run the Update Function Every Second
+setInterval(updateOldUsers, 1000); // 1000 ms = 1 second
 
 // Start the server
 app.listen(port, async () => {

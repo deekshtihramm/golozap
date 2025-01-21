@@ -149,7 +149,7 @@ const updateOldUsers = async () => {
         }
       }
     );
-    console.log("Old Users Updated with Missing Fields Only");
+    // console.log("Old Users Updated with Missing Fields Only");
   } catch (err) {
     console.error("Error Updating Old Users:", err);
   }

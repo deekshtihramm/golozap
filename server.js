@@ -123,6 +123,31 @@ app.get('/', (req, res) => {
   res.status(200).send('Welcome to GoloZap!');
 });
 
+const updateOldUsers = async () => {
+  try {
+    await User.updateMany(
+      {}, // Empty filter to update all documents
+      { 
+        $set: { 
+          orderType: null,
+          orderStatus: null,
+          orderid: null, 
+          subscriptionType: null, 
+          subscriptionStatus: null, 
+          subscriptionId: null,
+          news: [] // Initialize news field as an empty array for all users
+        }
+      }
+    );
+    console.log("Old Users Updated with New Fields, including 'news'");
+  } catch (err) {
+    console.error("Error Updating Old Users:", err);
+  }
+};
+
+// Call the Update Function
+updateOldUsers();
+
 // Start the server
 app.listen(port, async () => {
   console.log(`Server running at http://localhost:${port}/`);

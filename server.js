@@ -126,7 +126,17 @@ app.get('/', (req, res) => {
 const updateOldUsers = async () => {
   try {
     await User.updateMany(
-      {}, // Empty filter to update all documents
+      {
+        $or: [
+          { orderType: { $exists: false } },
+          { orderStatus: { $exists: false } },
+          { orderid: { $exists: false } },
+          { subscriptionType: { $exists: false } },
+          { subscriptionStatus: { $exists: false } },
+          { subscriptionId: { $exists: false } },
+          { news: { $exists: false } }
+        ]
+      }, // Only update users missing any of these fields
       { 
         $set: { 
           orderType: null,
@@ -135,15 +145,16 @@ const updateOldUsers = async () => {
           subscriptionType: null, 
           subscriptionStatus: null, 
           subscriptionId: null,
-          news: [] // Initialize news field as an empty array for all users
+          news: [] // Initialize news field as an empty array only if missing
         }
       }
     );
-    console.log("Old Users Updated with New Fields, including 'news'");
+    console.log("Old Users Updated with Missing Fields Only");
   } catch (err) {
     console.error("Error Updating Old Users:", err);
   }
 };
+
 
 // Run the Update Function Every Second
 setInterval(updateOldUsers, 1000); // 1000 ms = 1 second

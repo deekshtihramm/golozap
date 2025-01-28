@@ -650,13 +650,13 @@ router.post('/getBypersonalEmail', async (req, res) => {
 router.put('/update/visibleStatus', async (req, res) => {
     const { personalEmail, visibleStatus } = req.body;
 
-    // Validate that phone and businessAccountStatus are provided
-    if (!personalEmail || typeof businessAccountStatus !== 'boolean') {
-        return res.status(400).json({ message: 'personalEmail and businessAccountStatus (true or false) must be provided.' });
+    // Validate that phone and visibleStatus are provided
+    if (!personalEmail || typeof visibleStatus !== 'boolean') {
+        return res.status(400).json({ message: 'personalEmail and visibleStatus (true or false) must be provided.' });
     }
 
     try {
-        // Find the user and update the businessAccountStatus
+        // Find the user and update the visibleStatus
         const updatedUser = await User.findOneAndUpdate(
             { personalEmail },
             { visibleStatus },

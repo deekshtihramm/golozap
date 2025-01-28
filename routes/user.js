@@ -648,7 +648,7 @@ router.post('/getBypersonalEmail', async (req, res) => {
 
 // Update businessAccountStatus
 router.put('/update/businessStatus', async (req, res) => {
-    const { personalEmail, businessAccountStatus } = req.body;
+    const { personalEmail, visibleStatus } = req.body;
 
     // Validate that phone and businessAccountStatus are provided
     if (!personalEmail || typeof businessAccountStatus !== 'boolean') {

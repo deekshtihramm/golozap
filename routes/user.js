@@ -84,6 +84,7 @@ router.post('/demoservicecreate', async (req, res) => {
         serviceAreaPincodes, // Array of pincodes for service area
         businesslocation,    // Business location
         businessAccountStatus, // Account status (e.g. 'active', 'inactive')
+        visibleStatus,
         businessPhoneNumbers, // Array of business phone numbers
         businessEmails,      // Array of business emails
         businessName         // Name of the business
@@ -110,6 +111,7 @@ router.post('/demoservicecreate', async (req, res) => {
             businesslocation,       // Storing business location
             reviews,
             businessAccountStatus, // Storing business account status
+            visibleStatus,
             businessPhoneNumbers,  // Storing business phone numbers
             businessEmails,        // Storing business emails
             businessName           // Storing business name
@@ -247,7 +249,8 @@ router.put('/businessverification', async (req, res) => {
                     about: about,
                     address: address,
                     businesslocation: businesslocation,
-                    businessAccountStatus: true
+                    businessAccountStatus: true,
+                    visibleStatus: true
                 }
             },
             { new: true}
@@ -656,7 +659,7 @@ router.put('/update/businessStatus', async (req, res) => {
         // Find the user and update the businessAccountStatus
         const updatedUser = await User.findOneAndUpdate(
             { personalEmail },
-            { businessAccountStatus },
+            { visibleStatus },
             { new: true } // Return the updated document
         );
 

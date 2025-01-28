@@ -40,7 +40,7 @@ const UserSchema = new mongoose.Schema(
         password: { type: String },
         businesslocation: { type: String },
         news: [NewsSchema], // Array of news items
-        item1: { type: String },
+        visibleStatus: { type: Boolean, default: false },
         item2: { type: String },
         item3: { type: String },
         item4: { type: String },

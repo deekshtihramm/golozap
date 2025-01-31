@@ -190,30 +190,24 @@ router.post('/search', async (req, res) => {
             for (let partialPincode of partialPincodes) {
                 console.log(`Checking for address: ${partialPincode}`);
 
-                // 1️⃣ Fetch users where orderStatus or subscriptionStatus is "active"
+                // 1️⃣ Fetch active users first (orderStatus OR subscriptionStatus is "active")
                 const activeUsers = await User.find({
-                    $and: [
-                        { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } },
-                        { serviceAreaPincodes: { $in: [partialPincode] } },
-                        { $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }] }
-                    ]
+                    serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
+                    serviceAreaPincodes: { $in: [partialPincode] },
+                    $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }]
                 });
 
-                // 2️⃣ Fetch remaining users with null OR inactive statuses
+                // 2️⃣ Fetch remaining users who don't have "active" status (inactive OR null)
                 const otherUsers = await User.find({
+                    serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
+                    serviceAreaPincodes: { $in: [partialPincode] },
                     $and: [
-                        { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } },
-                        { serviceAreaPincodes: { $in: [partialPincode] } },
-                        { $or: [
-                            { orderStatus: { $ne: "active" } }, 
-                            { subscriptionStatus: { $ne: "active" } }, 
-                            { orderStatus: null }, 
-                            { subscriptionStatus: null }
-                        ] }
+                        { orderStatus: { $not: { $eq: "active" } } }, // OrderStatus NOT "active"
+                        { subscriptionStatus: { $not: { $eq: "active" } } } // SubscriptionStatus NOT "active"
                     ]
                 });
 
-                // Merge results with active users appearing first
+                // Add both lists to the final array
                 allUsers = [...allUsers, ...activeUsers, ...otherUsers];
             }
         }

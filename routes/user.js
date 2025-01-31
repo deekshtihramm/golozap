@@ -202,12 +202,12 @@ router.post('/search', async (req, res) => {
                     serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
                     serviceAreaPincodes: { $in: [partialPincode] },
                     $or: [
-                        { orderStatus: { $ne: "active" } }, // Exclude active orderStatus
-                        { orderStatus: { $exists: false } }, // Include missing orderStatus
-                        { subscriptionStatus: { $ne: "active" } }, // Exclude active subscriptionStatus
-                        { subscriptionStatus: { $exists: false } } // Include missing subscriptionStatus
+                        { orderStatus: { $ne: "active", $exists: true, $nin: ["", null] } }, 
+                        { orderStatus: { $exists: false } }, 
+                        { subscriptionStatus: { $ne: "active", $exists: true, $nin: ["", null] } }, 
+                        { subscriptionStatus: { $exists: false } } 
                     ]
-                });
+                });                
                 
 
                 // Add both lists to the final array

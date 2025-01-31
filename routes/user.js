@@ -181,11 +181,7 @@ router.post('/search', async (req, res) => {
         for (let pincode of serviceAreaPincodes) {
             let parts = pincode.split(',');
             let partialPincodes = [];
-            
-            
-            // Generate all possible address combinations by progressively removing the last part
 
-            // Generate all possible address combinations by progressively removing the last part
             while (parts.length > 0) {
                 partialPincodes.push(parts.join(',').trim());
                 parts.pop();
@@ -194,7 +190,7 @@ router.post('/search', async (req, res) => {
             for (let partialPincode of partialPincodes) {
                 console.log(`Checking for address: ${partialPincode}`);
 
-                // First fetch users where orderStatus or subscriptionStatus is active
+                // 1️⃣ Fetch users where orderStatus or subscriptionStatus is "active"
                 const activeUsers = await User.find({
                     $and: [
                         { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } },
@@ -203,12 +199,17 @@ router.post('/search', async (req, res) => {
                     ]
                 });
 
-                // Then fetch remaining users who match criteria but are NOT active
+                // 2️⃣ Fetch remaining users with null OR inactive statuses
                 const otherUsers = await User.find({
                     $and: [
                         { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } },
                         { serviceAreaPincodes: { $in: [partialPincode] } },
-                        { $or: [{ orderStatus: { $ne: "active" } }, { subscriptionStatus: { $ne: "active" } }] }
+                        { $or: [
+                            { orderStatus: { $ne: "active" } }, 
+                            { subscriptionStatus: { $ne: "active" } }, 
+                            { orderStatus: null }, 
+                            { subscriptionStatus: null }
+                        ] }
                     ]
                 });
 
@@ -224,7 +225,6 @@ router.post('/search', async (req, res) => {
         // Remove duplicates based on uniqueId
         const uniqueUsers = [...new Map(allUsers.map(user => [user.uniqueId, user])).values()];
 
-        // Return the found users
         res.status(200).json(uniqueUsers);
     } catch (err) {
         console.error(err);

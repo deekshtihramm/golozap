@@ -167,40 +167,46 @@ router.post('/login', async (req, res) => {
 router.post('/search', async (req, res) => {
     const { serviceTypes, serviceAreaPincodes } = req.body;
 
+    // Ensure that both serviceTypes and serviceAreaPincodes are provided
     if (!serviceTypes || !serviceAreaPincodes) {
         return res.status(400).json({ message: 'Both serviceTypes and serviceAreaPincodes are required.' });
     }
 
     try {
+        // Validate that both inputs are arrays
         if (!Array.isArray(serviceTypes) || !Array.isArray(serviceAreaPincodes)) {
             return res.status(400).json({ message: 'Both serviceTypes and serviceAreaPincodes must be arrays.' });
         }
 
-        let allUsers = [];
+        let allUsers = []; // To hold users from all searches
 
+        // Process each pincode for the query logic
         for (let pincode of serviceAreaPincodes) {
-            let parts = pincode.split(',');
+            let parts = pincode.split(','); // Split the pincode by commas
             let partialPincodes = [];
-
+            
+            // Generate all possible address combinations by progressively removing the last part
             while (parts.length > 0) {
-                partialPincodes.push(parts.join(',').trim());
-                parts.pop();
+                partialPincodes.push(parts.join(',').trim()); // Join the parts and trim the space
+                parts.pop(); // Remove the last part
             }
 
+            // For each address combination (from full address to smallest segment), query users
             for (let partialPincode of partialPincodes) {
                 console.log(`Checking for address: ${partialPincode}`);
 
                 const query = {
                     $and: [
-                        { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } },
-                        { serviceAreaPincodes: { $in: [partialPincode] } }
+                        { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } }, // Case-insensitive match in serviceTypes
+                        { serviceAreaPincodes: { $in: [partialPincode] } } // Match this specific partial address
                     ]
                 };
 
+                // Find all users matching the query conditions
                 const users = await User.find(query);
 
                 if (users.length > 0) {
-                    allUsers = [...allUsers, ...users];
+                    allUsers = [...allUsers, ...users]; // Accumulate users matching this query
                 }
             }
         }
@@ -209,17 +215,12 @@ router.post('/search', async (req, res) => {
             return res.status(404).json({ message: 'No users found' });
         }
 
-        // Remove duplicates based on uniqueId
-        const uniqueUsers = [...new Map(allUsers.map(user => [user.uniqueId, user])).values()];
-
-        // Sort by rating (descending) and reviewsCount (descending)
-        uniqueUsers.sort((a, b) => {
-            if (b.rating !== a.rating) {
-                return b.rating - a.rating; // Higher rating first
-            }
-            return b.reviewsCount - a.reviewsCount; // If rating is same, sort by review count
+        // Remove duplicates if any (based on the uniqueId)
+        const uniqueUsers = [...new Set(allUsers.map(user => user.uniqueId))].map(id => {
+            return allUsers.find(user => user.uniqueId === id);
         });
 
+        // Return the found users
         res.status(200).json(uniqueUsers);
 
     } catch (err) {

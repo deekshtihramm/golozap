@@ -190,28 +190,18 @@ router.post('/search', async (req, res) => {
             for (let partialPincode of partialPincodes) {
                 console.log(`Checking for address: ${partialPincode}`);
 
-                // 1️⃣ Fetch active users first (orderStatus OR subscriptionStatus is "active")
-                const activeUsers = await User.find({
-                    serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
-                    serviceAreaPincodes: { $in: [partialPincode] },
-                    $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }]
-                });
-
-                // 2️⃣ Fetch remaining users who don't have "active" status (inactive OR null)
-                const otherUsers = await User.find({
-                    serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
-                    serviceAreaPincodes: { $in: [partialPincode] },
-                    $or: [
-                        { orderStatus: { $ne: "active", $exists: true, $nin: ["", null] } }, 
-                        { orderStatus: { $exists: false } }, 
-                        { subscriptionStatus: { $ne: "active", $exists: true, $nin: ["", null] } }, 
-                        { subscriptionStatus: { $exists: false } } 
+                const query = {
+                    $and: [
+                        { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } },
+                        { serviceAreaPincodes: { $in: [partialPincode] } }
                     ]
-                });                
-                
+                };
 
-                // Add both lists to the final array
-                allUsers = [...allUsers, ...activeUsers, ...otherUsers];
+                const users = await User.find(query);
+
+                if (users.length > 0) {
+                    allUsers = [...allUsers, ...users];
+                }
             }
         }
 
@@ -222,7 +212,16 @@ router.post('/search', async (req, res) => {
         // Remove duplicates based on uniqueId
         const uniqueUsers = [...new Map(allUsers.map(user => [user.uniqueId, user])).values()];
 
+        // Sort by rating (descending) and reviewsCount (descending)
+        uniqueUsers.sort((a, b) => {
+            if (b.rating !== a.rating) {
+                return b.rating - a.rating; // Higher rating first
+            }
+            return b.reviewsCount - a.reviewsCount; // If rating is same, sort by review count
+        });
+
         res.status(200).json(uniqueUsers);
+
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });

@@ -201,11 +201,14 @@ router.post('/search', async (req, res) => {
                 const otherUsers = await User.find({
                     serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
                     serviceAreaPincodes: { $in: [partialPincode] },
-                    $and: [
-                        { orderStatus: { $not: { $eq: "active" } } }, // OrderStatus NOT "active"
-                        { subscriptionStatus: { $not: { $eq: "active" } } } // SubscriptionStatus NOT "active"
+                    $or: [
+                        { orderStatus: { $ne: "active" } }, // Exclude active orderStatus
+                        { orderStatus: { $exists: false } }, // Include missing orderStatus
+                        { subscriptionStatus: { $ne: "active" } }, // Exclude active subscriptionStatus
+                        { subscriptionStatus: { $exists: false } } // Include missing subscriptionStatus
                     ]
                 });
+                
 
                 // Add both lists to the final array
                 allUsers = [...allUsers, ...activeUsers, ...otherUsers];

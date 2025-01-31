@@ -167,47 +167,53 @@ router.post('/login', async (req, res) => {
 router.post('/search', async (req, res) => {
     const { serviceTypes, serviceAreaPincodes } = req.body;
 
-    // Ensure that both serviceTypes and serviceAreaPincodes are provided
     if (!serviceTypes || !serviceAreaPincodes) {
         return res.status(400).json({ message: 'Both serviceTypes and serviceAreaPincodes are required.' });
     }
 
     try {
-        // Validate that both inputs are arrays
         if (!Array.isArray(serviceTypes) || !Array.isArray(serviceAreaPincodes)) {
             return res.status(400).json({ message: 'Both serviceTypes and serviceAreaPincodes must be arrays.' });
         }
 
-        let allUsers = []; // To hold users from all searches
+        let allUsers = [];
 
-        // Process each pincode for the query logic
         for (let pincode of serviceAreaPincodes) {
-            let parts = pincode.split(','); // Split the pincode by commas
+            let parts = pincode.split(',');
             let partialPincodes = [];
             
+            
+            // Generate all possible address combinations by progressively removing the last part
+
             // Generate all possible address combinations by progressively removing the last part
             while (parts.length > 0) {
-                partialPincodes.push(parts.join(',').trim()); // Join the parts and trim the space
-                parts.pop(); // Remove the last part
+                partialPincodes.push(parts.join(',').trim());
+                parts.pop();
             }
 
-            // For each address combination (from full address to smallest segment), query users
             for (let partialPincode of partialPincodes) {
                 console.log(`Checking for address: ${partialPincode}`);
 
-                const query = {
+                // First fetch users where orderStatus or subscriptionStatus is active
+                const activeUsers = await User.find({
                     $and: [
-                        { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } }, // Case-insensitive match in serviceTypes
-                        { serviceAreaPincodes: { $in: [partialPincode] } } // Match this specific partial address
+                        { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } },
+                        { serviceAreaPincodes: { $in: [partialPincode] } },
+                        { $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }] }
                     ]
-                };
+                });
 
-                // Find all users matching the query conditions
-                const users = await User.find(query);
+                // Then fetch remaining users who match criteria but are NOT active
+                const otherUsers = await User.find({
+                    $and: [
+                        { serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) } },
+                        { serviceAreaPincodes: { $in: [partialPincode] } },
+                        { $or: [{ orderStatus: { $ne: "active" } }, { subscriptionStatus: { $ne: "active" } }] }
+                    ]
+                });
 
-                if (users.length > 0) {
-                    allUsers = [...allUsers, ...users]; // Accumulate users matching this query
-                }
+                // Merge results with active users appearing first
+                allUsers = [...allUsers, ...activeUsers, ...otherUsers];
             }
         }
 
@@ -215,14 +221,11 @@ router.post('/search', async (req, res) => {
             return res.status(404).json({ message: 'No users found' });
         }
 
-        // Remove duplicates if any (based on the uniqueId)
-        const uniqueUsers = [...new Set(allUsers.map(user => user.uniqueId))].map(id => {
-            return allUsers.find(user => user.uniqueId === id);
-        });
+        // Remove duplicates based on uniqueId
+        const uniqueUsers = [...new Map(allUsers.map(user => [user.uniqueId, user])).values()];
 
         // Return the found users
         res.status(200).json(uniqueUsers);
-
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });

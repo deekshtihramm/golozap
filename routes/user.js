@@ -87,7 +87,8 @@ router.post('/demoservicecreate', async (req, res) => {
         visibleStatus,
         businessPhoneNumbers, // Array of business phone numbers
         businessEmails,      // Array of business emails
-        businessName         // Name of the business
+        businessName,         // Name of the business
+        subscriptionStatus
     } = req.body;
 
     try {
@@ -114,7 +115,8 @@ router.post('/demoservicecreate', async (req, res) => {
             visibleStatus,
             businessPhoneNumbers,  // Storing business phone numbers
             businessEmails,        // Storing business emails
-            businessName           // Storing business name
+            businessName,           // Storing business name
+            subscriptionStatus: "active"
         });
 
         // Save the service to the database

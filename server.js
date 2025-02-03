@@ -139,12 +139,12 @@ const updateOldUsers = async () => {
       }, // Only update users missing any of these fields
       { 
         $set: { 
-          orderType: null,
-          orderStatus: null,
-          orderid: null, 
-          subscriptionType: null, 
-          subscriptionStatus: null, 
-          subscriptionId: null,
+          orderType: "null",
+          orderStatus: "null",
+          orderid: "null", 
+          subscriptionType: "null", 
+          subscriptionStatus: "null", 
+          subscriptionId: "null",
           news: [] // Initialize news field as an empty array only if missing
         }
       }

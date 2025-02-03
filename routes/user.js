@@ -190,7 +190,7 @@ router.post('/search', async (req, res) => {
             for (let partialPincode of partialPincodes) {
                 console.log(`Checking for address: ${partialPincode}`);
 
-                // Fetch active users first (orderStatus OR subscriptionStatus is "active" AND visibleStatus: true)
+                // 1️⃣ Fetch active users first (orderStatus OR subscriptionStatus is "active")
                 const activeUsers = await User.find({
                     serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
                     serviceAreaPincodes: { $in: [partialPincode] },
@@ -198,7 +198,7 @@ router.post('/search', async (req, res) => {
                     $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }]
                 });
 
-                // Fetch remaining users who don't have "active" status but still have visibleStatus: true
+                // 2️⃣ Fetch remaining users who don't have "active" status (inactive OR null)
                 const otherUsers = await User.find({
                     serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
                     serviceAreaPincodes: { $in: [partialPincode] },

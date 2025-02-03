@@ -188,7 +188,7 @@ router.post('/search', async (req, res) => {
             }
 
             for (let partialPincode of partialPincodes) {
-                console.log(`Checking for address: ${partialPincode}`);
+                // console.log(`Checking for address: ${partialPincode}`);
 
                 // 1️⃣ Fetch active users first (orderStatus OR subscriptionStatus is "active")
                 const activeUsers = await User.find({
@@ -228,6 +228,21 @@ router.post('/search', async (req, res) => {
     }
 });
 
+// GET all visible users
+router.get('/visible-users', async (req, res) => {
+    try {
+        const visibleUsers = await User.find({ visibleStatus: true });
+
+        if (visibleUsers.length === 0) {
+            return res.status(404).json({ message: 'No visible users found' });
+        }
+
+        res.status(200).json(visibleUsers);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
 
 
 router.put('/businessverification', async (req, res) => {

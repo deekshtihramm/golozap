@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema(
         servicename: { type: String },
         phone: { type: String },
         ownername: { type: String, default: "GoloZap" },
-        personalEmail: { type: String },
+        personalEmail: { type: String, unique: true },
         serviceUrl: { type: String },
         about: { type: String },
         address: { type: String },
@@ -60,13 +60,6 @@ const UserSchema = new mongoose.Schema(
         timestamps: true,
         versionKey: '__v'
     }
-);
-
-
-// Create a unique index for `personalEmail` excluding null values
-UserSchema.index(
-    { personalEmail: 1 },
-    { unique: true, partialFilterExpression: { personalEmail: { $ne: null } } }
 );
 
 // Export the User model

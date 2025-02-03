@@ -69,7 +69,6 @@ router.post('/create', async (req, res) => {
     }
 });
 
-
 router.post('/demoservicecreate', async (req, res) => {
     const { 
         servicename, 
@@ -88,7 +87,14 @@ router.post('/demoservicecreate', async (req, res) => {
         businessPhoneNumbers, // Array of business phone numbers
         businessEmails,      // Array of business emails
         businessName,         // Name of the business
-        subscriptionStatus
+        subscriptionStatus,
+        orderType,            // Type of the order (e.g. 'online', 'offline')
+        orderStatus,          // Status of the order (e.g. 'pending', 'completed')
+        orderid,              // Unique order identifier
+        subscriptionType,     // Type of subscription (e.g. 'basic', 'premium')
+        subscriptionId,       // Unique subscription identifier
+        createdAt,            // Creation timestamp
+        updatedAt             // Updated timestamp
     } = req.body;
 
     try {
@@ -116,7 +122,14 @@ router.post('/demoservicecreate', async (req, res) => {
             businessPhoneNumbers,  // Storing business phone numbers
             businessEmails,        // Storing business emails
             businessName,           // Storing business name
-            subscriptionStatus: "active"
+            subscriptionStatus,
+            orderType,              // Storing order type
+            orderStatus,            // Storing order status
+            orderid,                // Storing unique order id
+            subscriptionType,       // Storing subscription type
+            subscriptionId,         // Storing unique subscription id
+            createdAt,              // Storing creation timestamp
+            updatedAt               // Storing updated timestamp
         });
 
         // Save the service to the database
@@ -130,6 +143,7 @@ router.post('/demoservicecreate', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
 
 
 // POST to login

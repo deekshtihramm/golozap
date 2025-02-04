@@ -2,7 +2,7 @@
   "name": "golozap_backend",
   "version": "1.0.0",
   "main": "index.js",
- "scripts": {
+  "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,7 +13,6 @@
   "dependencies": {
     "axios": "^1.0.0",
     "axios-retry": "^4.5.0",
-    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",

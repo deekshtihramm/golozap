@@ -25,7 +25,7 @@ const razorpay = new Razorpay({
 
 // Initialize Express
 const app = express();
-const port = 3000; // Port for the server
+const port = process.env.PORT || 3000; // Port for the server
 
 app.use(cors());
 

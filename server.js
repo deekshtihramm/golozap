@@ -161,5 +161,5 @@ setInterval(updateOldUsers, 100000); // 100000 ms = 100 second
 
 // Start the server
 app.listen(port, async () => {
-  console.log(`Server running at http://localhost:${port}/`);
+  console.log(`Server running at https://localhost:${port}/`);
 });

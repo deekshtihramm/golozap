@@ -244,6 +244,53 @@ router.post('/search', async (req, res) => {
     }
 });
 
+
+// GET users by serviceTypes (Removing serviceAreaPincodes filter)
+router.post('/search-all', async (req, res) => {
+    const { serviceTypes } = req.body;
+
+    if (!serviceTypes || !Array.isArray(serviceTypes)) {
+        return res.status(400).json({ message: 'serviceTypes must be a non-empty array.' });
+    }
+
+    try {
+        let allUsers = [];
+
+        // 1️⃣ Fetch active users first (orderStatus OR subscriptionStatus is "active")
+        const activeUsers = await User.find({
+            serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
+            visibleStatus: true,  // Only include users with visibleStatus: true
+            $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }]
+        });
+
+        // 2️⃣ Fetch remaining users who don't have "active" status (inactive OR null)
+        const otherUsers = await User.find({
+            serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
+            visibleStatus: true,  // Only include users with visibleStatus: true
+            $and: [
+                { orderStatus: { $not: { $eq: "active" } } }, // OrderStatus NOT "active"
+                { subscriptionStatus: { $not: { $eq: "active" } } } // SubscriptionStatus NOT "active"
+            ]
+        });
+
+        // Merge both lists (active users first, then others)
+        allUsers = [...activeUsers, ...otherUsers];
+
+        if (allUsers.length === 0) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+
+        // Remove duplicates based on uniqueId
+        const uniqueUsers = [...new Map(allUsers.map(user => [user.uniqueId, user])).values()];
+
+        res.status(200).json(uniqueUsers);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+
 // GET all visible users
 router.get('/visible-users', async (req, res) => {
     try {

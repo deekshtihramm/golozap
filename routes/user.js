@@ -244,44 +244,57 @@ router.post('/search', async (req, res) => {
     }
 });
 
-
-// GET users by serviceTypes (Removing serviceAreaPincodes filter)
+// GET users by serviceTypes (Paginated, 50 users per request)
 router.post('/search-all', async (req, res) => {
-    const { serviceTypes } = req.body;
-
-    if (!serviceTypes || !Array.isArray(serviceTypes)) {
-        return res.status(400).json({ message: 'serviceTypes must be a non-empty array.' });
-    }
-
     try {
-        let allUsers = [];
+        const { serviceTypes, page = 1, limit = 50 } = req.body; // Default page = 1, limit = 50
 
-        // 1️⃣ Fetch active users first (orderStatus OR subscriptionStatus is "active")
+        // Validate input
+        if (!serviceTypes || !Array.isArray(serviceTypes) || serviceTypes.length === 0) {
+            return res.status(400).json({ message: 'serviceTypes must be a non-empty array.' });
+        }
+
+        // Fetch users in two groups: Active first, then others
         const activeUsers = await User.find({
             serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
-            visibleStatus: true,  // Only include users with visibleStatus: true
+            visibleStatus: true,
             $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }]
         });
 
-        // 2️⃣ Fetch remaining users who don't have "active" status (inactive OR null)
         const otherUsers = await User.find({
             serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
-            visibleStatus: true,  // Only include users with visibleStatus: true
+            visibleStatus: true,
             $and: [
-                { orderStatus: { $not: { $eq: "active" } } }, // OrderStatus NOT "active"
-                { subscriptionStatus: { $not: { $eq: "active" } } } // SubscriptionStatus NOT "active"
+                { orderStatus: { $not: { $eq: "active" } } },
+                { subscriptionStatus: { $not: { $eq: "active" } } }
             ]
         });
 
-        // Merge both lists (active users first, then others)
-        allUsers = [...activeUsers, ...otherUsers];
-
-        if (allUsers.length === 0) {
-            return res.status(404).json({ message: 'No users found' });
-        }
+        // Merge both lists (Active first, then others)
+        let allUsers = [...activeUsers, ...otherUsers];
 
         // Remove duplicates based on uniqueId
         const uniqueUsers = [...new Map(allUsers.map(user => [user.uniqueId, user])).values()];
+
+        // Pagination
+        const totalUsers = uniqueUsers.length;
+        const totalPages = Math.ceil(totalUsers / limit);
+        const skip = (page - 1) * limit;
+        const paginatedUsers = uniqueUsers.slice(skip, skip + limit);
+
+        // If no users found for the requested page
+        if (paginatedUsers.length === 0) {
+            return res.status(404).json({ message: 'No users found on this page.' });
+        }
+
+        // Send response
+        res.status(200).json({
+            users: paginatedUsers,
+            totalUsers,
+            totalPages,
+            currentPage: page,
+            hasMore: page < totalPages
+        });
 
         res.status(200).json(uniqueUsers);
     } catch (err) {

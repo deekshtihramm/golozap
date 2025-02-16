@@ -248,6 +248,8 @@ router.post('/search', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
+
 // GET users by serviceTypes, serviceAreaPincodes, and servicename with pagination
 router.post('/type-search', async (req, res) => {
     const { serviceTypes, serviceAreaPincodes, servicename, offset = 0, limit = 50 } = req.body;
@@ -266,7 +268,7 @@ router.post('/type-search', async (req, res) => {
         if (servicename) {
             // Fetch users by servicename, serviceTypes, and serviceAreaPincodes (partial and case-insensitive search)
             allUsers = await User.find({
-                servicename: { $regex: new RegExp(servicename, 'i') },
+                businessName: { $regex: new RegExp(servicename, 'i') },
                 serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
                 serviceAreaPincodes: { $in: serviceAreaPincodes },
                 visibleStatus: true

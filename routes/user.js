@@ -248,7 +248,6 @@ router.post('/search', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
-
 // GET users by serviceTypes, serviceAreaPincodes, and servicename with pagination
 router.post('/type-search', async (req, res) => {
     const { serviceTypes, serviceAreaPincodes, servicename, offset = 0, limit = 50 } = req.body;
@@ -269,7 +268,7 @@ router.post('/type-search', async (req, res) => {
             allUsers = await User.find({
                 servicename: { $regex: new RegExp(servicename, 'i') },
                 serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
-                serviceAreaPincodes: {  $in: [partialPincode] },
+                serviceAreaPincodes: { $in: serviceAreaPincodes },
                 visibleStatus: true
             });
         } else {
@@ -285,7 +284,7 @@ router.post('/type-search', async (req, res) => {
                 for (let partialPincode of partialPincodes) {
                     // Fetch active users first
                     const activeUsers = await User.find({
-                        serviceTypes: { $in: serviceTypes },
+                        serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
                         serviceAreaPincodes: { $in: [partialPincode] },
                         visibleStatus: true,
                         $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }]
@@ -293,7 +292,7 @@ router.post('/type-search', async (req, res) => {
 
                     // Fetch remaining inactive users
                     const otherUsers = await User.find({
-                        serviceTypes: { $in: serviceTypes },
+                        serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
                         serviceAreaPincodes: { $in: [partialPincode] },
                         visibleStatus: true,
                         $and: [

@@ -250,6 +250,86 @@ router.post('/search', async (req, res) => {
 });
 
 
+// GET users by serviceTypes, serviceAreaPincodes, and username with pagination
+router.post('/type-search', async (req, res) => {
+    const { serviceTypes, serviceAreaPincodes, username, offset = 0, limit = 50 } = req.body;
+
+    if ((!serviceTypes || !serviceAreaPincodes) && !username) {
+        return res.status(400).json({ message: 'Either username or both serviceTypes and serviceAreaPincodes are required.' });
+    }
+
+    try {
+        if ((serviceTypes && !Array.isArray(serviceTypes)) || (serviceAreaPincodes && !Array.isArray(serviceAreaPincodes))) {
+            return res.status(400).json({ message: 'serviceTypes and serviceAreaPincodes must be arrays if provided.' });
+        }
+
+        let allUsers = [];
+
+        if (username) {
+            // Fetch users by username (case-insensitive search)
+            allUsers = await User.find({
+                username: { $regex: new RegExp(`^${username}$`, 'i') },
+                visibleStatus: true
+            });
+        } else {
+            for (let pincode of serviceAreaPincodes) {
+                let parts = pincode.split(',');
+                let partialPincodes = [];
+
+                while (parts.length > 0) {
+                    partialPincodes.push(parts.join(',').trim());
+                    parts.pop();
+                }
+
+                for (let partialPincode of partialPincodes) {
+                    // Fetch active users first
+                    const activeUsers = await User.find({
+                        serviceTypes: { $in: serviceTypes },
+                        serviceAreaPincodes: { $in: [partialPincode] },
+                        visibleStatus: true,
+                        $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }]
+                    });
+
+                    // Fetch remaining inactive users
+                    const otherUsers = await User.find({
+                        serviceTypes: { $in: serviceTypes },
+                        serviceAreaPincodes: { $in: [partialPincode] },
+                        visibleStatus: true,
+                        $and: [
+                            { orderStatus: { $not: { $eq: "active" } } },
+                            { subscriptionStatus: { $not: { $eq: "active" } } }
+                        ]
+                    });
+
+                    // Merge active and inactive users
+                    allUsers = [...allUsers, ...activeUsers, ...otherUsers];
+                }
+            }
+        }
+
+        if (allUsers.length === 0) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+
+        // Remove duplicates based on uniqueId
+        const uniqueUsers = [...new Map(allUsers.map(user => [user.uniqueId, user])).values()];
+
+        // ✅ Apply pagination AFTER removing duplicates
+        const paginatedUsers = uniqueUsers.slice(offset, offset + limit);
+
+        res.status(200).json({
+            users: paginatedUsers,
+            hasMore: offset + limit < uniqueUsers.length, // ✅ Returns if more pages are available
+            totalCount: uniqueUsers.length // ✅ Optional: Total user count before pagination
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+
+
 // GET users by serviceTypes (Removing serviceAreaPincodes filter)
 router.post('/search-all', async (req, res) => {
     const { serviceTypes, offset = 0, limit = 50 } = req.body;

@@ -249,13 +249,12 @@ router.post('/search', async (req, res) => {
     }
 });
 
-
-// GET users by serviceTypes, serviceAreaPincodes, and username with pagination
+// GET users by serviceTypes, serviceAreaPincodes, and servicename with pagination
 router.post('/type-search', async (req, res) => {
     const { serviceTypes, serviceAreaPincodes, servicename, offset = 0, limit = 50 } = req.body;
 
     if ((!serviceTypes || !serviceAreaPincodes) && !servicename) {
-        return res.status(400).json({ message: 'Either username or both serviceTypes and serviceAreaPincodes are required.' });
+        return res.status(400).json({ message: 'Either servicename or both serviceTypes and serviceAreaPincodes are required.' });
     }
 
     try {
@@ -266,9 +265,9 @@ router.post('/type-search', async (req, res) => {
         let allUsers = [];
 
         if (servicename) {
-            // Fetch users by username (case-insensitive search)
+            // Fetch users by servicename (partial and case-insensitive search)
             allUsers = await User.find({
-                servicename: { $regex: new RegExp(`^${servicename}$`, 'i') },
+                servicename: { $regex: new RegExp(servicename, 'i') },
                 visibleStatus: true
             });
         } else {

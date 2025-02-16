@@ -179,9 +179,9 @@ router.post('/login', async (req, res) => {
 });
 
 
-// GET users by serviceTypes and serviceAreaPincodes
+// GET users by serviceTypes and serviceAreaPincodes with pagination
 router.post('/search', async (req, res) => {
-    const { serviceTypes, serviceAreaPincodes } = req.body;
+    const { serviceTypes, serviceAreaPincodes, offset = 0, limit = 50 } = req.body;
 
     if (!serviceTypes || !serviceAreaPincodes) {
         return res.status(400).json({ message: 'Both serviceTypes and serviceAreaPincodes are required.' });
@@ -204,28 +204,26 @@ router.post('/search', async (req, res) => {
             }
 
             for (let partialPincode of partialPincodes) {
-                // console.log(`Checking for address: ${partialPincode}`);
-
-                // 1️⃣ Fetch active users first (orderStatus OR subscriptionStatus is "active")
+                // Fetch active users first
                 const activeUsers = await User.find({
                     serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
                     serviceAreaPincodes: { $in: [partialPincode] },
-                    visibleStatus: true,  // Only include users with visibleStatus: true
+                    visibleStatus: true,
                     $or: [{ orderStatus: "active" }, { subscriptionStatus: "active" }]
                 });
 
-                // 2️⃣ Fetch remaining users who don't have "active" status (inactive OR null)
+                // Fetch remaining inactive users
                 const otherUsers = await User.find({
                     serviceTypes: { $in: serviceTypes.map(type => new RegExp(type, 'i')) },
                     serviceAreaPincodes: { $in: [partialPincode] },
-                    visibleStatus: true,  // Only include users with visibleStatus: true
+                    visibleStatus: true,
                     $and: [
-                        { orderStatus: { $not: { $eq: "active" } } }, // OrderStatus NOT "active"
-                        { subscriptionStatus: { $not: { $eq: "active" } } } // SubscriptionStatus NOT "active"
+                        { orderStatus: { $not: { $eq: "active" } } },
+                        { subscriptionStatus: { $not: { $eq: "active" } } }
                     ]
                 });
 
-                // Add both lists to the final array
+                // Merge active and inactive users
                 allUsers = [...allUsers, ...activeUsers, ...otherUsers];
             }
         }
@@ -237,12 +235,20 @@ router.post('/search', async (req, res) => {
         // Remove duplicates based on uniqueId
         const uniqueUsers = [...new Map(allUsers.map(user => [user.uniqueId, user])).values()];
 
-        res.status(200).json(uniqueUsers);
+        // ✅ Apply pagination AFTER removing duplicates
+        const paginatedUsers = uniqueUsers.slice(offset, offset + limit);
+
+        res.status(200).json({
+            users: paginatedUsers,
+            hasMore: offset + limit < uniqueUsers.length, // ✅ Returns if more pages are available
+            totalCount: uniqueUsers.length // ✅ Optional: Total user count before pagination
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
 
 // GET users by serviceTypes (Removing serviceAreaPincodes filter)
 router.post('/search-all', async (req, res) => {

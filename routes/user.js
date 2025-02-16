@@ -265,9 +265,11 @@ router.post('/type-search', async (req, res) => {
         let allUsers = [];
 
         if (servicename) {
-            // Fetch users by servicename (partial and case-insensitive search)
+            // Fetch users by servicename, serviceTypes, and serviceAreaPincodes (partial and case-insensitive search)
             allUsers = await User.find({
                 servicename: { $regex: new RegExp(servicename, 'i') },
+                serviceTypes: { $in: serviceTypes },
+                serviceAreaPincodes: { $in: serviceAreaPincodes },
                 visibleStatus: true
             });
         } else {

@@ -252,9 +252,9 @@ router.post('/search', async (req, res) => {
 
 // GET users by serviceTypes, serviceAreaPincodes, and username with pagination
 router.post('/type-search', async (req, res) => {
-    const { serviceTypes, serviceAreaPincodes, username, offset = 0, limit = 50 } = req.body;
+    const { serviceTypes, serviceAreaPincodes, servicename, offset = 0, limit = 50 } = req.body;
 
-    if ((!serviceTypes || !serviceAreaPincodes) && !username) {
+    if ((!serviceTypes || !serviceAreaPincodes) && !servicename) {
         return res.status(400).json({ message: 'Either username or both serviceTypes and serviceAreaPincodes are required.' });
     }
 
@@ -265,10 +265,10 @@ router.post('/type-search', async (req, res) => {
 
         let allUsers = [];
 
-        if (username) {
+        if (servicename) {
             // Fetch users by username (case-insensitive search)
             allUsers = await User.find({
-                username: { $regex: new RegExp(`^${username}$`, 'i') },
+                servicename: { $regex: new RegExp(`^${servicename}$`, 'i') },
                 visibleStatus: true
             });
         } else {
@@ -327,8 +327,6 @@ router.post('/type-search', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
-
-
 
 // GET users by serviceTypes (Removing serviceAreaPincodes filter)
 router.post('/search-all', async (req, res) => {

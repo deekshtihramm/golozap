@@ -402,7 +402,7 @@ router.get('/visible-users', async (req, res) => {
 
 
 router.put('/businessverification', async (req, res) => {
-    const { personalEmail, servicename, businessPhoneNumbers, businessEmails, about, address, businesslocation } = req.body;
+    const { personalEmail, businessName, businessPhoneNumbers, businessEmails, about, address, businesslocation, ownername } = req.body;
     
   
     if (!personalEmail || !servicename || !businessPhoneNumbers || !businessEmails || !about || !address) {
@@ -414,7 +414,8 @@ router.put('/businessverification', async (req, res) => {
             { personalEmail: personalEmail },
             {
                 $set: {
-                    servicename: servicename,
+                    businessName: businessName,
+                    ownername: ownername,
                     businessPhoneNumbers: businessPhoneNumbers,
                     businessEmails: businessEmails,
                     about: about,

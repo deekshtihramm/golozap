@@ -42,7 +42,7 @@ router.post('/add_basic_subscription', async (req, res) => {
     }
 
     // Set default values
-    const planId = req.body.planId || 'plan_PkToXDZwIDKyWj'; // Replace with your default Plan ID
+    const planId = req.body.planId || 'plan_Pycls4iM26TM5w'; // Replace with your default Plan ID
     const amount = req.body.amount || 2900; // Default amount in paise (e.g., 29.0 INR)
     const currency = req.body.currency || 'INR'; // Default currency to INR
 
@@ -128,7 +128,7 @@ router.post('/add_premium_subscription', async (req, res) => {
     }
 
     // Set default values
-    const planId = req.body.planId || 'plan_PlIVykx48qHLAr'; // Replace with your default Plan ID
+    const planId = req.body.planId || 'plan_PyclZLLPP1ylCK'; // Replace with your default Plan ID
     const amount = req.body.amount || 11900; // Default amount in paise (e.g., 119.0 INR)
     const currency = req.body.currency || 'INR'; // Default currency to INR
 
@@ -214,7 +214,7 @@ router.post('/add_premium_pro_subscription', async (req, res) => {
     }
 
     // Set default values
-    const planId = req.body.planId || 'plan_PlIY4iwXxYVGDB'; // Replace with your default Plan ID
+    const planId = req.body.planId || 'plan_PyclH7LUjnR778'; // Replace with your default Plan ID
     const amount = req.body.amount || 39000; // Default amount in paise (e.g., 390.0 INR)
     const currency = req.body.currency || 'INR'; // Default currency to INR
 

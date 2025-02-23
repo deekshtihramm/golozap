@@ -15,7 +15,7 @@ const updateAnalytics = async () => {
         const startOfMonth = moment().startOf('month').toDate();
 
         // ✅ Efficiently count total users, providers, and registrations using aggregation
-        const userCounts = await User.aggregate([
+        const userCounts = await User.userCounts([
             {
                 $facet: {
                     totalUsers: [{ $count: "count" }],

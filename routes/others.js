@@ -1,10 +1,46 @@
 const express = require('express');
 const router = express.Router();
-// const { User } = require('../model/User');
 const User = require('../model/User');  // ✅ Correct
 const { Others } = require('../model/Others');
 const moment = require('moment');
 const cron = require('node-cron');
+const { google } = require('googleapis');
+const fs = require('fs');
+const path = require('path');
+
+const SCOPES = ['https://www.googleapis.com/auth/androidpublisher'];
+const KEY_FILE_PATH = path.join(__dirname, 'prefab-setting-439109-p5-08506f3f0825.json'); 
+const PACKAGE_NAME = 'com.golozap'; 
+
+// ✅ Function to fetch total installs from Google Play Store
+const fetchTotalInstalls = async () => {
+    try {
+        console.log("🔄 Fetching total installs from Google Play Console...");
+
+        // Authenticate using service account credentials
+        const auth = new google.auth.GoogleAuth({
+            keyFile: KEY_FILE_PATH,
+            scopes: SCOPES,
+        });
+
+        const androidPublisher = google.androidpublisher({ version: 'v3', auth });
+
+        // Fetch the app statistics
+        const response = await androidPublisher.edits.get({
+            packageName: PACKAGE_NAME,
+            editId: 'current',
+        });
+
+        // Extract total installs from the response
+        const totalInstalls = response.data.installs || 0;
+
+        console.log(`✅ Play Store Installs Fetched: ${totalInstalls}`);
+        return totalInstalls;
+    } catch (error) {
+        console.error("❌ Error fetching installs from Play Store:", error.message);
+        return 0;
+    }
+};
 
 // ✅ Function to scan user data and update analytics
 const updateAnalytics = async () => {
@@ -41,31 +77,8 @@ const updateAnalytics = async () => {
         const lastDayRegistrations = userCounts[0]?.lastDayRegistrations[0]?.count || 0;
         const lastMonthRegistrations = userCounts[0]?.lastMonthRegistrations[0]?.count || 0;
 
-        // ✅ Find most popular services (top 10)
-        let topServices;
-        try {
-            topServices = await User.aggregate([
-                { $unwind: { path: "$serviceTypes", preserveNullAndEmptyArrays: true } },
-                { $group: { _id: "$serviceTypes", count: { $sum: 1 } } },
-                { $sort: { count: -1 } },
-                { $limit: 10 }
-            ]).exec();
-        } catch (err) {
-            throw new Error("Error during top services aggregation: " + err.message);
-        }
-
-        // // ✅ Find most active locations (top 10)
-        // let mostActiveLocations;
-        // try {
-        //     mostActiveLocations = await User.aggregate([
-        //         { $match: { businesslocation: { $ne: null } } }, // Exclude null values
-        //         { $group: { _id: "$businesslocation", count: { $sum: 1 } } },
-        //         { $sort: { count: -1 } },
-        //         { $limit: 10 }
-        //     ]).exec();
-        // } catch (err) {
-        //     throw new Error("Error during most active locations aggregation: " + err.message);
-        // }
+        // ✅ Fetch total installs from Play Store
+        const totalInstalls = await fetchTotalInstalls();
 
         // ✅ Update or create an `Others` document
         let analytics = await Others.findOne().sort({ createdAt: -1 }).exec(); // Get latest analytics
@@ -77,10 +90,7 @@ const updateAnalytics = async () => {
         analytics.totalProviders = totalProviders;
         analytics.lastDayRegistrations = lastDayRegistrations;
         analytics.lastMonthRegistrations = lastMonthRegistrations;
-        analytics.topServices = topServices.map(s => s._id);
-        // analytics.mostActiveLocations = mostActiveLocations.map(l =>
-        //     typeof l._id === 'object' ? JSON.stringify(l._id) : String(l._id)
-        // );        
+        analytics.totalInstalls = totalInstalls; // ✅ Save Play Store Installs
 
         await analytics.save();
         console.log("✅ Analytics updated successfully!");
@@ -116,7 +126,6 @@ router.get('/analytics', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
 
 // ✅ Schedule daily update at midnight using cron
 cron.schedule('0 0 * * *', async () => {

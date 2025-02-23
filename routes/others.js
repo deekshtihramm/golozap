@@ -54,18 +54,18 @@ const updateAnalytics = async () => {
             throw new Error("Error during top services aggregation: " + err.message);
         }
 
-        // ✅ Find most active locations (top 10)
-        let mostActiveLocations;
-        try {
-            mostActiveLocations = await User.aggregate([
-                { $match: { businesslocation: { $ne: null } } }, // Exclude null values
-                { $group: { _id: "$businesslocation", count: { $sum: 1 } } },
-                { $sort: { count: -1 } },
-                { $limit: 10 }
-            ]).exec();
-        } catch (err) {
-            throw new Error("Error during most active locations aggregation: " + err.message);
-        }
+        // // ✅ Find most active locations (top 10)
+        // let mostActiveLocations;
+        // try {
+        //     mostActiveLocations = await User.aggregate([
+        //         { $match: { businesslocation: { $ne: null } } }, // Exclude null values
+        //         { $group: { _id: "$businesslocation", count: { $sum: 1 } } },
+        //         { $sort: { count: -1 } },
+        //         { $limit: 10 }
+        //     ]).exec();
+        // } catch (err) {
+        //     throw new Error("Error during most active locations aggregation: " + err.message);
+        // }
 
         // ✅ Update or create an `Others` document
         let analytics = await Others.findOne().sort({ createdAt: -1 }).exec(); // Get latest analytics
@@ -78,9 +78,9 @@ const updateAnalytics = async () => {
         analytics.lastDayRegistrations = lastDayRegistrations;
         analytics.lastMonthRegistrations = lastMonthRegistrations;
         analytics.topServices = topServices.map(s => s._id);
-        analytics.mostActiveLocations = mostActiveLocations.map(l =>
-            typeof l._id === 'object' ? JSON.stringify(l._id) : String(l._id)
-        );        
+        // analytics.mostActiveLocations = mostActiveLocations.map(l =>
+        //     typeof l._id === 'object' ? JSON.stringify(l._id) : String(l._id)
+        // );        
 
         await analytics.save();
         console.log("✅ Analytics updated successfully!");

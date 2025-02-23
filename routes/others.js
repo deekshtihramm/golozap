@@ -1,44 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../model/User');  // ✅ Correct
+const User = require('../model/User');  
 const { Others } = require('../model/Others');
 const moment = require('moment');
 const cron = require('node-cron');
-const { google } = require('googleapis');
-const fs = require('fs');
-const path = require('path');
-
-const SCOPES = ['https://www.googleapis.com/auth/androidpublisher'];
-const KEY_FILE_PATH = path.join(__dirname, 'prefab-setting-439109-p5-08506f3f0825.json'); 
-const PACKAGE_NAME = 'com.golozap'; 
+const gplay = require('google-play-scraper'); // ✅ Import Google Play Scraper
 
 // ✅ Function to fetch total installs from Google Play Store
-const fetchTotalInstalls = async () => {
+const fetchPlayStoreInstalls = async () => {
     try {
-        console.log("🔄 Fetching total installs from Google Play Console...");
+        console.log("🔄 Fetching total installs from Google Play Store...");
 
-        // Authenticate using service account credentials
-        const auth = new google.auth.GoogleAuth({
-            keyFile: KEY_FILE_PATH,
-            scopes: SCOPES,
-        });
+        // Replace with your app's package name
+        const appDetails = await gplay.app({ appId: 'com.golozap.android' });
 
-        const androidPublisher = google.androidpublisher({ version: 'v3', auth });
-
-        // Fetch the app statistics
-        const response = await androidPublisher.edits.get({
-            packageName: PACKAGE_NAME,
-            editId: 'current',
-        });
-
-        // Extract total installs from the response
-        const totalInstalls = response.data.installs || 0;
-
-        console.log(`✅ Play Store Installs Fetched: ${totalInstalls}`);
-        return totalInstalls;
+        // Extract numeric install count
+        return parseInt(appDetails.installs.replace(/[^0-9]/g, ''), 10) || 0;
     } catch (error) {
         console.error("❌ Error fetching installs from Play Store:", error.message);
-        return 0;
+        return 0; // Return 0 if there's an error
     }
 };
 
@@ -78,10 +58,10 @@ const updateAnalytics = async () => {
         const lastMonthRegistrations = userCounts[0]?.lastMonthRegistrations[0]?.count || 0;
 
         // ✅ Fetch total installs from Play Store
-        const totalInstalls = await fetchTotalInstalls();
+        const totalInstalls = await fetchPlayStoreInstalls();
 
         // ✅ Update or create an `Others` document
-        let analytics = await Others.findOne().sort({ createdAt: -1 }).exec(); // Get latest analytics
+        let analytics = await Others.findOne().sort({ createdAt: -1 }).exec();
         if (!analytics) {
             analytics = new Others();
         }
@@ -90,7 +70,7 @@ const updateAnalytics = async () => {
         analytics.totalProviders = totalProviders;
         analytics.lastDayRegistrations = lastDayRegistrations;
         analytics.lastMonthRegistrations = lastMonthRegistrations;
-        analytics.totalInstalls = totalInstalls; // ✅ Save Play Store Installs
+        analytics.totalInstalls = totalInstalls; // ✅ Store total installs
 
         await analytics.save();
         console.log("✅ Analytics updated successfully!");

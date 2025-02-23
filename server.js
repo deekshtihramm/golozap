@@ -37,7 +37,9 @@ app.use(express.json({ limit: '10mb' }));
 const userRoutes = require('./routes/user');
 const areaRoutes = require('./routes/area');
 const subscriptionRoutes = require('./routes/razorpaysubscription');
+const othersRoutes = require('./routes/others');
 
+app.use('/api/others', othersRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api', areaRoutes);

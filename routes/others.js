@@ -99,15 +99,24 @@ router.put('/update', async (req, res) => {
     }
 });
 
-// ✅ API: Get latest analytics data
+// ✅ API: Get latest analytics data (without topServices & mostActiveLocations)
 router.get('/analytics', async (req, res) => {
     try {
-        const analytics = await Others.findOne().sort({ createdAt: -1 }).exec() || {};
-        res.json(analytics);
+        const analytics = await Others.findOne().sort({ createdAt: -1 }).lean().exec();
+        
+        if (!analytics) {
+            return res.json({});
+        }
+
+        // Remove `topServices` and `mostActiveLocations` before sending response
+        const { topServices, mostActiveLocations, ...filteredAnalytics } = analytics;
+        
+        res.json(filteredAnalytics);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 // ✅ Schedule daily update at midnight using cron
 cron.schedule('0 0 * * *', async () => {

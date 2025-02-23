@@ -78,7 +78,9 @@ const updateAnalytics = async () => {
         analytics.lastDayRegistrations = lastDayRegistrations;
         analytics.lastMonthRegistrations = lastMonthRegistrations;
         analytics.topServices = topServices.map(s => s._id);
-        analytics.mostActiveLocations = mostActiveLocations.map(l => l._id);
+        analytics.mostActiveLocations = mostActiveLocations.map(l =>
+            typeof l._id === 'object' ? JSON.stringify(l._id) : String(l._id)
+        );        
 
         await analytics.save();
         console.log("✅ Analytics updated successfully!");

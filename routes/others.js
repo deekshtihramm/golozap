@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 // const { User } = require('../model/User');
 const User = require('../model/User');  // ✅ Correct
-const Others = require('../model/Others');
+const { Others } = require('../model/Others');
 const moment = require('moment');
 const cron = require('node-cron');
 

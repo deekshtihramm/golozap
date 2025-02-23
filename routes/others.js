@@ -11,16 +11,16 @@ const fetchPlayStoreInstalls = async () => {
     try {
         console.log("🔄 Fetching total installs from Google Play Store...");
 
-        // Replace with your app's package name
-        const appDetails = await gplay.app({ appId: 'com.golozap.android' });
+        const gplay = await import('google-play-scraper'); // ✅ Use dynamic import
+        const appDetails = await gplay.default.app({ appId: 'com.golozap' });
 
-        // Extract numeric install count
         return parseInt(appDetails.installs.replace(/[^0-9]/g, ''), 10) || 0;
     } catch (error) {
         console.error("❌ Error fetching installs from Play Store:", error.message);
-        return 0; // Return 0 if there's an error
+        return 0;
     }
 };
+
 
 // ✅ Function to scan user data and update analytics
 const updateAnalytics = async () => {

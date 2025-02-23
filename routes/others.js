@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { User } = require('../models/User');
-const { Others } = require('../models/Others');
+const { User } = require('../model/User');
+const { Others } = require('../model/Others');
 const moment = require('moment');
 
 // ✅ Function to scan user data and update analytics

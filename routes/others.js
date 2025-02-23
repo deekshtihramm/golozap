@@ -1,26 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../model/User');  
+// const { User } = require('../model/User');
+const User = require('../model/User');  // ✅ Correct
 const { Others } = require('../model/Others');
 const moment = require('moment');
 const cron = require('node-cron');
-const gplay = require('google-play-scraper'); // ✅ Import Google Play Scraper
-
-// ✅ Function to fetch total installs from Google Play Store
-const fetchPlayStoreInstalls = async () => {
-    try {
-        console.log("🔄 Fetching total installs from Google Play Store...");
-
-        const gplay = await import('google-play-scraper'); // ✅ Use dynamic import
-        const appDetails = await gplay.default.app({ appId: 'com.golozap' });
-
-        return parseInt(appDetails.installs.replace(/[^0-9]/g, ''), 10) || 0;
-    } catch (error) {
-        console.error("❌ Error fetching installs from Play Store:", error.message);
-        return 0;
-    }
-};
-
 
 // ✅ Function to scan user data and update analytics
 const updateAnalytics = async () => {
@@ -57,11 +41,21 @@ const updateAnalytics = async () => {
         const lastDayRegistrations = userCounts[0]?.lastDayRegistrations[0]?.count || 0;
         const lastMonthRegistrations = userCounts[0]?.lastMonthRegistrations[0]?.count || 0;
 
-        // ✅ Fetch total installs from Play Store
-        const totalInstalls = await fetchPlayStoreInstalls();
+        // ✅ Find most popular services (top 10)
+        let topServices;
+        try {
+            topServices = await User.aggregate([
+                { $unwind: { path: "$serviceTypes", preserveNullAndEmptyArrays: true } },
+                { $group: { _id: "$serviceTypes", count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 10 }
+            ]).exec();
+        } catch (err) {
+            throw new Error("Error during top services aggregation: " + err.message);
+        }
 
         // ✅ Update or create an `Others` document
-        let analytics = await Others.findOne().sort({ createdAt: -1 }).exec();
+        let analytics = await Others.findOne().sort({ createdAt: -1 }).exec(); // Get latest analytics
         if (!analytics) {
             analytics = new Others();
         }
@@ -70,7 +64,7 @@ const updateAnalytics = async () => {
         analytics.totalProviders = totalProviders;
         analytics.lastDayRegistrations = lastDayRegistrations;
         analytics.lastMonthRegistrations = lastMonthRegistrations;
-        analytics.totalInstalls = totalInstalls; // ✅ Store total installs
+        analytics.topServices = topServices.map(s => s._id);       
 
         await analytics.save();
         console.log("✅ Analytics updated successfully!");
@@ -106,6 +100,7 @@ router.get('/analytics', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 // ✅ Schedule daily update at midnight using cron
 cron.schedule('0 0 * * *', async () => {

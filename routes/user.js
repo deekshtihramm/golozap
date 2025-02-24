@@ -874,6 +874,32 @@ router.put('/update/businessName', async (req, res) => {
     }
 });
 
+// PUT to update media URLs
+router.put('/update/media', async (req, res) => {
+    const { personalEmail, media } = req.body;
+
+    if (!personalEmail || !media || typeof media !== 'object') {
+        return res.status(400).json({ message: 'personalEmail and a valid media object must be provided.' });
+    }
+
+    try {
+        const updatedUser = await User.findOneAndUpdate(
+            { personalEmail },
+            { media },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (err) {
+        console.error("Error updating media URLs:", err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 // PUT to update business emails
 router.put('/update/businessEmails', async (req, res) => {
     const { personalEmail, businessEmails } = req.body;

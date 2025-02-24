@@ -137,9 +137,10 @@ const updateOldUsers = async () => {
           { subscriptionType: { $exists: false } },
           { subscriptionStatus: { $exists: false } },
           { subscriptionId: { $exists: false } },
-          { news: { $exists: false } }
+          { news: { $exists: false } },
+          { media: { $exists: false } }, // ✅ Ensure media object exists
         ]
-      }, // Only update users missing any of these fields
+      }, 
       { 
         $set: { 
           orderType: "null",
@@ -148,13 +149,22 @@ const updateOldUsers = async () => {
           subscriptionType: "null", 
           subscriptionStatus: "null", 
           subscriptionId: "null",
-          news: [] // Initialize news field as an empty array only if missing
+          news: [], // ✅ Initialize news as an empty array
+          media: { // ✅ Initialize media with empty strings
+            instagram: "",
+            facebook: "",
+            linkedin: "",
+            twitter: "",
+            youtube: "",
+            telegram: "",
+            google: ""
+          }
         }
       }
     );
-    // console.log("Old Users Updated with Missing Fields Only");
+    console.log("✅ Old Users Updated with Missing Fields Only");
   } catch (err) {
-    console.error("Error Updating Old Users:", err);
+    console.error("❌ Error Updating Old Users:", err);
   }
 };
 

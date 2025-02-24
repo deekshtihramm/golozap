@@ -41,20 +41,21 @@ const UserSchema = new mongoose.Schema(
         businesslocation: { type: String },
         news: [NewsSchema], // Array of news items
         visibleStatus: { type: Boolean, default: false },
-        item2: { type: String },
-        item3: { type: String },
-        item4: { type: String },
-        item5: { type: String },
-        item6: { type: String },
-        item7: { type: String },
-        item8: { type: String },
-        item9: { type: String },
         orderType: { type: String },
         orderStatus: { type: String },
         orderid: { type: String },
         subscriptionType: { type: String },
         subscriptionStatus: { type: String },
-        subscriptionId: { type: String }
+        subscriptionId: { type: String },
+        media: {
+            instagram: { type: String },
+            facebook: { type: String },
+            linkedin: { type: String },
+            twitter: { type: String },
+            youtube: { type: String },
+            telegram: { type: String },
+            google: { type: String }
+        }
     },
     {
         timestamps: true,

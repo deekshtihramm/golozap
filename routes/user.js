@@ -901,7 +901,7 @@ router.put('/update/media', async (req, res) => {
 });
 
 // GET API to fetch media URLs and order/subscription details by personalEmail
-router.get('/get/media', async (req, res) => {
+router.post('/get/media', async (req, res) => {
     const { personalEmail } = req.body;
 
     if (!personalEmail) {

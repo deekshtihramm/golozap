@@ -902,7 +902,7 @@ router.put('/update/media', async (req, res) => {
 
 // GET API to fetch media URLs by personalEmail
 router.get('/get/media', async (req, res) => {
-    const { personalEmail } = req.query; // Get personalEmail from query params
+    const { personalEmail } = req.body; // Get personalEmail from query params
 
     if (!personalEmail) {
         return res.status(400).json({ message: 'personalEmail is required' });

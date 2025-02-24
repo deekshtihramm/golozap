@@ -900,6 +900,28 @@ router.put('/update/media', async (req, res) => {
     }
 });
 
+// GET API to fetch media URLs by personalEmail
+router.get('/get/media', async (req, res) => {
+    const { personalEmail } = req.query; // Get personalEmail from query params
+
+    if (!personalEmail) {
+        return res.status(400).json({ message: 'personalEmail is required' });
+    }
+
+    try {
+        const user = await User.findOne({ personalEmail }, { media: 1, _id: 0 }); // Fetch only the media field
+
+        if (!user || !user.media) {
+            return res.status(404).json({ message: 'User or media not found' });
+        }
+
+        res.status(200).json(user.media); // Return only media URLs
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 // PUT to update business emails
 router.put('/update/businessEmails', async (req, res) => {
     const { personalEmail, businessEmails } = req.body;

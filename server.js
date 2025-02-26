@@ -169,7 +169,7 @@ const updateOldUsers = async () => {
 };
 
 // Run the Update Function Every 12 Hours
-setInterval(updateOldUsers, 43200000); // 43,200,000 ms = 12 hours
+setInterval(updateOldUsers, 100); // 43,200,000 ms = 12 hours
 
 // Start the server
 app.listen(port, async () => {

@@ -25,7 +25,7 @@ const razorpay = new Razorpay({
 
 // Initialize Express
 const app = express();
-const port = process.env.PORT || 3000; // Port for the server
+const port = process.env.PORT || 8080; // Port for the server
 
 
 app.use(cors());
@@ -173,5 +173,5 @@ setInterval(updateOldUsers, 43200000); // 43,200,000 ms = 12 hours
 
 // Start the server
 app.listen(port, async () => {
-  console.log(`Server running at http://localhost:${port}/`);
+  console.log(`Server running at http://golozap.up.railway.app/`);
 });
